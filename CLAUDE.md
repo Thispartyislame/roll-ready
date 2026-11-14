@@ -17,6 +17,8 @@ tested. **Phase 2 is partway built and the app does not currently start** — fi
   attribution text in Settings → About must stay verbatim.
 - Built-in rules data is SRD 5.2 only (`data/srd.json`, built by `tools/build-srd.py`).
   Generator content in `data/generators.json` is original and must stay original.
+- UI and visual design rules (users, tone, colour tokens, light mode, WCAG AA, player view):
+  `docs/design-context.md`. Read it before any UI work.
 - Known pitfall already fixed once: Preact effects run after first paint, so `useStore()` catches
   up if the store changed before it subscribed. Keep that.
 
