@@ -1,0 +1,868 @@
+{
+ "note": "Original content written for Roll Ready. Entries: \"text\" or [weight, \"text\"]. {key} rolls another table, {key x3} rolls three different entries, {2d6*10} rolls dice.",
+ "tables": [
+  {
+   "key": "npc_name_north",
+   "name": "NPC name: Northern",
+   "category": "NPC names",
+   "top": 1,
+   "save_as": "npc",
+   "entries": [
+    "{name_north_given} {name_north_family}"
+   ]
+  },
+  {
+   "key": "npc_name_sylvan",
+   "name": "NPC name: Sylvan",
+   "category": "NPC names",
+   "top": 1,
+   "save_as": "npc",
+   "entries": [
+    "{name_sylvan_given} {name_sylvan_family}"
+   ]
+  },
+  {
+   "key": "npc_name_stone",
+   "name": "NPC name: Stonefolk",
+   "category": "NPC names",
+   "top": 1,
+   "save_as": "npc",
+   "entries": [
+    "{name_stone_given} {name_stone_family}"
+   ]
+  },
+  {
+   "key": "npc_name_coast",
+   "name": "NPC name: Coastal",
+   "category": "NPC names",
+   "top": 1,
+   "save_as": "npc",
+   "entries": [
+    "{name_coast_given} {name_coast_family}"
+   ]
+  },
+  {
+   "key": "npc_name_small",
+   "name": "NPC name: Smallfolk",
+   "category": "NPC names",
+   "top": 1,
+   "save_as": "npc",
+   "entries": [
+    "{name_small_given} {name_small_family}"
+   ]
+  },
+  {
+   "key": "tavern_name",
+   "name": "Tavern or inn name",
+   "category": "Places",
+   "top": 1,
+   "save_as": "location",
+   "entries": [
+    [
+     6,
+     "The {tavern_adj} {tavern_noun}"
+    ],
+    [
+     1,
+     "The {tavern_noun} & {tavern_noun}"
+    ],
+    [
+     1,
+     "{name_any_given}'s Rest"
+    ],
+    [
+     1,
+     "The {tavern_adj} {tavern_noun} Inn"
+    ]
+   ]
+  },
+  {
+   "key": "shop",
+   "name": "Shop and stock",
+   "category": "Places",
+   "top": 1,
+   "save_as": "location",
+   "entries": [
+    "{name_any_given}'s {shop_kind} — Stock: {shop_goods x4}. {shop_quirk}"
+   ]
+  },
+  {
+   "key": "rumor",
+   "name": "Rumor",
+   "category": "Rumors",
+   "top": 1,
+   "save_as": "quest",
+   "entries": [
+    "The miller swears the river ran backward for an hour at the last new moon.",
+    "Someone has been paying the gravedigger to leave one plot empty.",
+    "A merchant caravan arrived on time with every wagon full and no drivers.",
+    "The old watchtower has a light in it again, and nobody holds the key.",
+    "Wolves have been seen walking the road in pairs, calm as pilgrims.",
+    "The baker's new apprentice never seems to show in the shop window's reflection.",
+    "A stranger is buying up every map of the hills, no matter how wrong it is.",
+    "The well in the square tasted of salt for three days, then of honey.",
+    "Two rival families both claim to have found the same lost ring.",
+    "A bounty was posted for a beast, then quietly taken down the next morning.",
+    "The ferryman won't cross after dusk since something knocked on the hull from below.",
+    "The children have a new skipping rhyme, and nobody knows who taught it to them.",
+    "The temple bell rang thirteen at midnight. The priest says it only has twelve in it.",
+    "A tinker is selling keys he says fit doors that haven't been built yet.",
+    "Sheep on the high pasture have been found shorn in the night, neat as you please.",
+    "The tax collector went into the marsh village and came back cheerful. That never happens.",
+    "There's a cellar under the cooper's shop that the cooper insists isn't there.",
+    "A hooded traveler paid for a week's lodging in coins no one recognizes.",
+    "Hunters found a ring of standing stones where there was open meadow last spring.",
+    "The deepest shaft of the mine was sealed, and it was sealed from the inside.",
+    "Crows keep gathering on one rooftop, and the family there has stopped answering the door.",
+    "A statue in the square has turned to face the other way.",
+    "Somebody is leaving fresh flowers at the crossroads every dawn.",
+    "The mapmakers are quietly hiring guards who don't ask questions."
+   ]
+  },
+  {
+   "key": "weather",
+   "name": "Weather",
+   "category": "Weather",
+   "top": 1,
+   "save_as": "note",
+   "entries": [
+    "{weather_temp}, with {weather_sky} and {weather_wind}."
+   ]
+  },
+  {
+   "key": "treasure_1",
+   "name": "Treasure: CR 0–4",
+   "category": "Treasure",
+   "top": 1,
+   "save_as": "note",
+   "entries": [
+    [
+     3,
+     "{3d6} gp and {4d6} sp in a worn pouch"
+    ],
+    [
+     2,
+     "{2d6*5} sp, {2d10} gp, and {valuables_low}"
+    ],
+    [
+     1,
+     "{2d6} gp, plus {valuables_low x2}"
+    ]
+   ]
+  },
+  {
+   "key": "treasure_2",
+   "name": "Treasure: CR 5–10",
+   "category": "Treasure",
+   "top": 1,
+   "save_as": "note",
+   "entries": [
+    [
+     3,
+     "{4d6*10} gp, {2d6*10} sp, and {valuables_mid}"
+    ],
+    [
+     2,
+     "{2d6*10} gp, {1d6} pp, {valuables_mid}, and {valuables_low}"
+    ],
+    [
+     1,
+     "{3d6*10} gp and {valuables_mid x2}"
+    ]
+   ]
+  },
+  {
+   "key": "treasure_3",
+   "name": "Treasure: CR 11–16",
+   "category": "Treasure",
+   "top": 1,
+   "save_as": "note",
+   "entries": [
+    [
+     3,
+     "{4d6*100} gp, {2d6*10} pp, {valuables_high}, and {valuables_mid}"
+    ],
+    [
+     2,
+     "{2d6*100} gp, {3d6*10} pp, and {valuables_high x2}"
+    ],
+    [
+     1,
+     "{6d6*100} gp and {valuables_mid x3}"
+    ]
+   ]
+  },
+  {
+   "key": "treasure_4",
+   "name": "Treasure: CR 17+",
+   "category": "Treasure",
+   "top": 1,
+   "save_as": "note",
+   "entries": [
+    [
+     3,
+     "{6d6*1000} gp, {4d6*100} pp, and {valuables_high x3}"
+    ],
+    [
+     1,
+     "{8d6*1000} gp, {2d6*100} pp, {valuables_high x2}, and {valuables_mid x2}"
+    ]
+   ]
+  },
+  {
+   "key": "name_any_given",
+   "name": "Given name: any style",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "{name_north_given}",
+    "{name_sylvan_given}",
+    "{name_stone_given}",
+    "{name_coast_given}",
+    "{name_small_given}"
+   ]
+  },
+  {
+   "key": "name_north_given",
+   "name": "Northern given names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Brannoch",
+    "Halvy",
+    "Storrin",
+    "Kelda",
+    "Torvik",
+    "Asgrith",
+    "Runa",
+    "Hadric",
+    "Maelis",
+    "Odrun",
+    "Skarn",
+    "Wenna",
+    "Dolvar",
+    "Ingrith",
+    "Brask",
+    "Thessa",
+    "Garrow",
+    "Lunet",
+    "Varrick",
+    "Eira",
+    "Jorund",
+    "Corben",
+    "Hilde",
+    "Ostric"
+   ]
+  },
+  {
+   "key": "name_north_family",
+   "name": "Northern family names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Coldharrow",
+    "Ironvale",
+    "Wintermere",
+    "Ashgrove",
+    "Hollowbrook",
+    "Greywatch",
+    "Stormfell",
+    "Blackfen",
+    "Deepwater",
+    "Longstride",
+    "Ravenmoor",
+    "Thornfield",
+    "Highcairn",
+    "Emberly",
+    "Snowden",
+    "Wolfrun",
+    "Fallowmere",
+    "Graniteback",
+    "Harrowgate",
+    "Whitlock",
+    "Marrowby",
+    "Kestrelford",
+    "Frostholt",
+    "Dunmere"
+   ]
+  },
+  {
+   "key": "name_sylvan_given",
+   "name": "Sylvan given names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Aelith",
+    "Sorenwe",
+    "Thalen",
+    "Ysmera",
+    "Caelir",
+    "Elowen",
+    "Faerin",
+    "Ithriel",
+    "Vaelan",
+    "Sylmae",
+    "Orilan",
+    "Maevis",
+    "Taliorn",
+    "Quellin",
+    "Aerwyn",
+    "Lorienne",
+    "Ilvara",
+    "Seledan",
+    "Mirath",
+    "Evanthe",
+    "Rhosyn",
+    "Daelis",
+    "Fenwyr",
+    "Ondriel"
+   ]
+  },
+  {
+   "key": "name_sylvan_family",
+   "name": "Sylvan family names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Moonbrook",
+    "Silverfern",
+    "Dawnwhisper",
+    "Starbloom",
+    "Willowmere",
+    "Mistwalker",
+    "Greenmantle",
+    "Songwillow",
+    "Brightwater",
+    "Nightbloom",
+    "Leafsong",
+    "Duskpetal",
+    "Windharrow",
+    "Thistledown",
+    "Ashenleaf",
+    "Riverlight",
+    "Fernhollow",
+    "Glimmerwood",
+    "Hazelgrove",
+    "Larkspur",
+    "Evenfall",
+    "Dewmantle"
+   ]
+  },
+  {
+   "key": "name_stone_given",
+   "name": "Stonefolk given names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Dorrim",
+    "Hulda",
+    "Brekka",
+    "Gundric",
+    "Marta",
+    "Okrin",
+    "Bersa",
+    "Kolm",
+    "Darni",
+    "Rugna",
+    "Volgar",
+    "Imka",
+    "Tobrek",
+    "Hesla",
+    "Grundel",
+    "Yorva",
+    "Balrik",
+    "Sigga",
+    "Morn",
+    "Dagna",
+    "Urtho",
+    "Feldra",
+    "Krag",
+    "Osmund"
+   ]
+  },
+  {
+   "key": "name_stone_family",
+   "name": "Stonefolk family names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Anvilmar",
+    "Coppervein",
+    "Deepdelve",
+    "Flintbeard",
+    "Goldhammer",
+    "Hearthforge",
+    "Ironbraid",
+    "Slatehand",
+    "Boulderback",
+    "Graniteheart",
+    "Emberhall",
+    "Orebinder",
+    "Stoutkettle",
+    "Kegbottom",
+    "Cragfoot",
+    "Steelmantle",
+    "Quartzeye",
+    "Tunnelwright",
+    "Rockmaw",
+    "Brassbuckle",
+    "Coalbrow",
+    "Chiselton"
+   ]
+  },
+  {
+   "key": "name_coast_given",
+   "name": "Coastal given names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Teodan",
+    "Calista",
+    "Renzo",
+    "Liora",
+    "Davin",
+    "Selma",
+    "Marek",
+    "Isaura",
+    "Bastien",
+    "Noemi",
+    "Corvin",
+    "Adela",
+    "Jarrah",
+    "Simone",
+    "Tavish",
+    "Elida",
+    "Rowan",
+    "Mirela",
+    "Anselm",
+    "Petra",
+    "Luca",
+    "Odessa",
+    "Farid",
+    "Zinnia"
+   ]
+  },
+  {
+   "key": "name_coast_family",
+   "name": "Coastal family names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Tidewell",
+    "Marlowe",
+    "Castellan",
+    "Varga",
+    "Okoro",
+    "Delmar",
+    "Fairwind",
+    "Quill",
+    "Santoro",
+    "Brightsail",
+    "Harrowell",
+    "Pike",
+    "Lowry",
+    "Cask",
+    "Navarro",
+    "Greaves",
+    "Alder",
+    "Morrow",
+    "Vance",
+    "Holloway",
+    "Bellwether",
+    "Corrin",
+    "Ashby",
+    "Seward"
+   ]
+  },
+  {
+   "key": "name_small_given",
+   "name": "Smallfolk given names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Pip",
+    "Tansy",
+    "Bram",
+    "Nettie",
+    "Fig",
+    "Dabble",
+    "Merrin",
+    "Posy",
+    "Tuck",
+    "Wren",
+    "Jory",
+    "Bibble",
+    "Clover",
+    "Midge",
+    "Finch",
+    "Lottie",
+    "Rollo",
+    "Sprig",
+    "Nib",
+    "Hazel",
+    "Quince",
+    "Toby",
+    "Pella",
+    "Dob"
+   ]
+  },
+  {
+   "key": "name_small_family",
+   "name": "Smallfolk family names",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Butterbrook",
+    "Quickpocket",
+    "Applewhistle",
+    "Tumblecart",
+    "Honeydew",
+    "Mossbottle",
+    "Puddlejump",
+    "Thimblewick",
+    "Nettlebank",
+    "Copperkettle",
+    "Burrowdown",
+    "Fernbutton",
+    "Hobnail",
+    "Sugarloaf",
+    "Wickwhistle",
+    "Barleymow",
+    "Gooseberry",
+    "Tinkerdash",
+    "Cobblecrumb",
+    "Plumtree",
+    "Dandypatch",
+    "Teakettle"
+   ]
+  },
+  {
+   "key": "tavern_adj",
+   "name": "Tavern name: first word",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Gilded",
+    "Drowsy",
+    "Laughing",
+    "Crooked",
+    "Rusty",
+    "Wandering",
+    "Thirsty",
+    "Silver",
+    "Salty",
+    "Lucky",
+    "Howling",
+    "Mended",
+    "Copper",
+    "Sleeping",
+    "Jolly",
+    "Broken",
+    "Hungry",
+    "Singing",
+    "Last",
+    "Merry",
+    "Tipsy",
+    "Red",
+    "Three-Legged",
+    "Whistling",
+    "Dancing",
+    "Stubborn"
+   ]
+  },
+  {
+   "key": "tavern_noun",
+   "name": "Tavern name: second word",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "Lantern",
+    "Badger",
+    "Anchor",
+    "Kettle",
+    "Griffon",
+    "Barrel",
+    "Heron",
+    "Tankard",
+    "Stag",
+    "Wheel",
+    "Crow",
+    "Candle",
+    "Mule",
+    "Hearth",
+    "Oyster",
+    "Fiddle",
+    "Boar",
+    "Compass",
+    "Goose",
+    "Cartwheel",
+    "Otter",
+    "Bell",
+    "Thistle",
+    "Gargoyle"
+   ]
+  },
+  {
+   "key": "shop_kind",
+   "name": "Shop types",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "General Goods",
+    "Apothecary",
+    "Smithy",
+    "Curios & Oddments",
+    "Chandlery",
+    "Provisions",
+    "Tailoring",
+    "Bookbindery",
+    "Leatherworks",
+    "Herb Stall",
+    "Tinker's Bench",
+    "Outfitters"
+   ]
+  },
+  {
+   "key": "shop_goods",
+   "name": "Shop stock (flavor)",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "coils of tarred rope",
+    "beeswax candles tied in sixes",
+    "a barrel of pickled eggs",
+    "secondhand boots, mostly in pairs",
+    "jars of dried river mint",
+    "a tray of mismatched buttons",
+    "whetstones wrapped in oilcloth",
+    "lamp oil in clay flasks",
+    "bolts of undyed wool",
+    "a dusty rack of walking sticks",
+    "hand-drawn local maps of doubtful accuracy",
+    "salted fish on strings",
+    "tin whistles",
+    "bundles of chalk and charcoal",
+    "a locked case of “genuine” lucky charms",
+    "hard cheese sealed in wax",
+    "iron nails by the pound",
+    "patched bedrolls",
+    "glass vials stoppered with cork",
+    "a cage of irritable chickens",
+    "sewing needles and waxed thread",
+    "smoked sausages hanging from the rafters",
+    "fishhooks and line",
+    "a shelf of chipped teacups",
+    "sacks of oats",
+    "bottles of cloudy cider",
+    "tallow soap",
+    "fire-starting kits in tin boxes",
+    "one suspiciously cheap spyglass",
+    "ink, quills and scrap parchment"
+   ]
+  },
+  {
+   "key": "shop_quirk",
+   "name": "Shop quirks",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "The owner haggles only in rhyme.",
+    "Everything is priced in odd numbers.",
+    "A very old dog is asleep across the doorway.",
+    "The shop closes without warning whenever it rains.",
+    "The owner insists on wrapping every purchase, however small.",
+    "A hand-lettered sign reads: No credit, no songs.",
+    "The owner is certain they have met one of the party before.",
+    "Half the shelves are labeled in a script nobody else reads.",
+    "There is a second, smaller door behind the counter that is never mentioned.",
+    "The owner pays well for gossip from out of town."
+   ]
+  },
+  {
+   "key": "weather_temp",
+   "name": "Weather: temperature",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    [
+     3,
+     "Mild"
+    ],
+    [
+     2,
+     "Cool"
+    ],
+    [
+     2,
+     "Warm"
+    ],
+    [
+     1,
+     "Cold"
+    ],
+    [
+     1,
+     "Hot"
+    ],
+    [
+     1,
+     "Bitterly cold"
+    ],
+    [
+     1,
+     "Sweltering"
+    ]
+   ]
+  },
+  {
+   "key": "weather_sky",
+   "name": "Weather: sky",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    [
+     4,
+     "clear skies"
+    ],
+    [
+     3,
+     "scattered cloud"
+    ],
+    [
+     3,
+     "overcast"
+    ],
+    [
+     2,
+     "light rain"
+    ],
+    [
+     1,
+     "steady rain"
+    ],
+    [
+     1,
+     "thick fog until midday"
+    ],
+    [
+     1,
+     "a thunderstorm by evening"
+    ],
+    [
+     1,
+     "drizzle on and off"
+    ],
+    [
+     1,
+     "hazy sunshine"
+    ]
+   ]
+  },
+  {
+   "key": "weather_wind",
+   "name": "Weather: wind",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    [
+     4,
+     "barely a breeze"
+    ],
+    [
+     3,
+     "a light wind"
+    ],
+    [
+     2,
+     "gusty spells"
+    ],
+    [
+     1,
+     "a strong, steady wind"
+    ],
+    [
+     1,
+     "dead calm"
+    ]
+   ]
+  },
+  {
+   "key": "valuables_low",
+   "name": "Valuables: modest",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "a silver ring set with a chip of garnet (about 15 gp)",
+    "a carved bone comb (5 gp)",
+    "a brass spyglass with a cracked lens (10 gp)",
+    "a bolt of fine blue linen (12 gp)",
+    "a set of loaded dice (2 gp, more to the right buyer)",
+    "a polished agate (10 gp)",
+    "a pewter flask engraved with a ship (8 gp)",
+    "a finely painted toy knight (5 gp)",
+    "a pouch of saffron (15 gp)",
+    "a copper bracelet shaped like a fish (6 gp)",
+    "an inlaid wooden game board (20 gp)",
+    "a small bronze bell with a sweet tone (9 gp)"
+   ]
+  },
+  {
+   "key": "valuables_mid",
+   "name": "Valuables: fine",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "a gold locket holding a lock of grey hair (75 gp)",
+    "a silver-chased drinking horn (120 gp)",
+    "a matched pair of moonstones (100 gp)",
+    "an embroidered silk sash (60 gp)",
+    "a jade figurine of a heron (150 gp)",
+    "a ledger of debts owed by local notables (50 gp for the binding, far more as leverage)",
+    "a pearl-handled letter knife (80 gp)",
+    "a small painting in a gilt frame (200 gp)",
+    "a set of silver table knives (90 gp)",
+    "an amber pendant with an insect inside (130 gp)"
+   ]
+  },
+  {
+   "key": "valuables_high",
+   "name": "Valuables: exceptional",
+   "category": "Parts",
+   "top": 0,
+   "save_as": "",
+   "entries": [
+    "a circlet of white gold set with sapphires (2,500 gp)",
+    "a ceremonial sword with a ruby pommel (1,800 gp)",
+    "a tapestry woven with gold thread (1,200 gp)",
+    "a star ruby the size of a thumbnail (1,000 gp)",
+    "a crystal decanter and six goblets (900 gp)",
+    "a properly sealed deed to a vineyard (3,000 gp to the right claimant)",
+    "a carved obsidian mask with opal eyes (2,000 gp)",
+    "a platinum signet ring of an extinct house (1,500 gp)",
+    "a jeweled music box that plays an unfamiliar tune (2,200 gp)",
+    "a string of black pearls (4,000 gp)"
+   ]
+  }
+ ]
+}
