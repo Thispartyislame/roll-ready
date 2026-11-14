@@ -4,6 +4,9 @@ Local-first Electron app for tabletop GMs (5E compatible, SRD 5.2). Phases 1 and
 complete and were tested end to end on Linux. Remaining: smoke-test on Windows and macOS (see the
 end of this file). The Phase 2 spec is in `docs/phase2-build-prompt.md`.
 
+**Before any UI work, read `PRODUCT.md` and `DESIGN.md`** (who the app is for, how it should feel,
+the visual rules). Where they conflict with this file, this file wins.
+
 ## Stack and conventions (do not re-choose)
 
 - Electron + `node:sqlite` (built into Electron's Node; no native modules) + Preact/htm vendored at
