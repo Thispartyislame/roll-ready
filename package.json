@@ -1,0 +1,38 @@
+{
+  "name": "roll-ready",
+  "productName": "Roll Ready",
+  "version": "2.0.0",
+  "description": "Local-first prep and at-the-table helper for tabletop RPG game masters. 5E compatible (2024 rules, SRD 5.2).",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
+  },
+  "devDependencies": {
+    "electron": "^45.3.2",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.rollready.app",
+    "productName": "Roll Ready",
+    "files": [
+      "main.js",
+      "preload.js",
+      "preload-player.js",
+      "src/**",
+      "data/**",
+      "renderer/**",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.utilities"
+    }
+  }
+}
