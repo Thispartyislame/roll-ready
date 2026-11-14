@@ -148,7 +148,7 @@ export function TrackerScreen() {
   const [heal, setHeal] = useState(false);
   const [ending, setEnding] = useState(false);
   const typing = (e) => /INPUT|TEXTAREA|SELECT/.test(e.target.tagName);
-  const plain = (e) => !typing(e) && !e.ctrlKey && !e.metaKey && !e.altKey && !ending;
+  const plain = (e) => !typing(e) && !e.ctrlKey && !e.metaKey && !e.altKey && !ending && !document.querySelector('.overlay');
 
   const shown = list.find((c) => c.id === sel) || list.find((c) => c.id === t.turn) || null;
   const menuFor = list.find((c) => c.id === menu);
@@ -193,14 +193,14 @@ export function TrackerScreen() {
     <div class="tmain">
       <div class="tbar">
         <div class="round">Round <b>${t.round}</b></div>
-        <button onClick=${() => { step(-1); setSel(null); }} title="Previous turn (← or P)">◀ Prev</button>
+        <button onClick=${() => { step(-1); setSel(null); }} title="Previous turn (← or P)">◀</button>
         <button class="primary big" onClick=${() => { step(1); setSel(null); }} title="Next turn (Space, → or N)">Next turn ▶</button>
         <span class="spacer"></span>
-        <button onClick=${rollAll} title="Roll initiative for every monster and NPC (PCs keep what you typed)">🎲 Initiative</button>
+        <button onClick=${rollAll} title="Roll initiative for every monster and NPC (PCs keep what you typed)">🎲 Roll init</button>
         <button onClick=${() => addParty()} title="Load this campaign's saved party">+ Party</button>
         <${PlayerMenu} />
         <button onClick=${() => setEnding(true)} disabled=${!list.length} title="Save the outcome to the session log and clear the monsters">End combat…</button>
-        <button class="danger ghost" onClick=${() => { if (confirm('Remove everyone from the tracker?')) { resetCombat(false); setSel(null); } }}>Clear all</button>
+        <button class="danger ghost" onClick=${() => { if (confirm('Remove everyone from the tracker?')) { resetCombat(false); setSel(null); } }} title="Remove everyone from the tracker">Clear</button>
       </div>
       <div class="addbar">
         <input class="qtyin" type="number" min="1" max="50" value=${qty} title="How many (monsters)" onInput=${(e) => setQty(Math.max(1, Number(e.target.value) || 1))} />

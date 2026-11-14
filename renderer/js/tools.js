@@ -1,8 +1,17 @@
-// Always-available tools: stopwatch, dice roller overlay, quick-jump palette, and the settings screen.
-import { html, useState, useEffect, useRef, S, notify, call, setKv, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, d, clock } from './lib.js';
-import { Bound, Field, useHotkey } from './components.js';
+// Always-available tools: stopwatch, command palette, shortcut reference, and the settings screen.
+import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS } from './lib.js';
+import { Bound, Field } from './components.js';
+import { roll, isDice, toggleDice } from './dice.js';
+import { toggleTimers } from './timers.js';
+import { step, tracker, order, addEncounter } from './combat.js';
+import { popOutPlayer } from './tracker.js';
+import { toggleEmergency } from './npcgen.js';
+import { startSession, activeSession } from './sessions.js';
 
-// ---------------------------------------------------------------- timer
+// Things the shell (app.js) knows how to do, for the command palette: focus the quick-note or quick-roll field.
+export const hooks = { note: () => {}, quickRoll: () => {} };
+
+// ---------------------------------------------------------------- stopwatch
 // Lives outside any screen, so it keeps counting while you flip around.
 const tm = { running: false, since: 0, banked: 0 };
 const elapsed = () => tm.banked + (tm.running ? Date.now() - tm.since : 0);
@@ -12,102 +21,58 @@ export function Timer() {
   useEffect(() => { const i = setInterval(() => tm.running && tick((n) => n + 1), 250); return () => clearInterval(i); }, []);
   const s = Math.floor(elapsed() / 1000);
   const mm = String(Math.floor(s / 60)).padStart(2, '0'); const ss = String(s % 60).padStart(2, '0');
-  return html`<div class="timer ${tm.running ? 'run' : ''}" title="Stopwatch (Ctrl+T starts and pauses)">
+  return html`<div class="timer ${tm.running ? 'run' : ''}" title="Stopwatch (Ctrl+T starts and pauses). For countdowns, use ⏳ Timers.">
     <span class="tdisp">${mm}:${ss}</span>
     <button onClick=${toggleTimer} title=${tm.running ? 'Pause' : 'Start'}>${tm.running ? '❚❚' : '▶'}</button>
     <button onClick=${() => { tm.running = false; tm.banked = 0; notify(); }} title="Reset">↺</button>
   </div>`;
 }
 
-// ---------------------------------------------------------------- dice roller
-const SIDES = [2, 3, 4, 6, 8, 10, 12, 20, 100];
-const dice = { open: false, groups: [{ qty: 1, sides: 20 }], mod: 0, reps: 1, mode: 'normal', last: null };
-export function toggleDice() { dice.open = !dice.open; notify(); }
-
-function roll() {
-  const groups = dice.groups.filter((g) => g.qty > 0);
-  if (!groups.length) return;
-  const adv = dice.mode !== 'normal' && groups.some((g) => g.sides === 20);
-  const lines = []; let grand = 0;
-  for (let r = 1; r <= dice.reps; r++) {
-    let total = dice.mod;
-    const parts = groups.map((g) => {
-      const shown = [];
-      for (let i = 0; i < g.qty; i++) {
-        if (adv && g.sides === 20) {
-          const a = d(20), b = d(20); const keep = dice.mode === 'adv' ? Math.max(a, b) : Math.min(a, b);
-          total += keep; shown.push(`${keep} (of ${a}, ${b})`);
-        } else { const v = d(g.sides); total += v; shown.push(v); }
-      }
-      return `${g.qty}d${g.sides} [${shown.join(', ')}]`;
-    });
-    if (dice.mod) parts.push(String(Math.abs(dice.mod)));
-    const expr = parts.reduce((acc, p, n) => acc + (n ? (n === parts.length - 1 && dice.mod < 0 ? ' − ' : ' + ') : '') + p, '');
-    lines.push(`${dice.reps > 1 ? `Roll ${r}:  ` : ''}${expr} = ${total}`);
-    grand += total;
-  }
-  if (dice.reps > 1) lines.push(`Grand total: ${grand}`);
-  const expression = groups.map((g) => `${g.qty}d${g.sides}`).join(' + ') + (dice.mod ? ` ${dice.mod > 0 ? '+' : '−'} ${Math.abs(dice.mod)}` : '')
-    + (dice.reps > 1 ? `  × ${dice.reps}` : '') + (adv ? (dice.mode === 'adv' ? '  (advantage)' : '  (disadvantage)') : '');
-  const entry = { created_at: new Date().toISOString(), expression, detail: lines.join('\n'), total: grand };
-  dice.last = entry; S.diceLog.unshift(entry); if (S.diceLog.length > 200) S.diceLog.length = 200;
-  notify();
-  call('diceAdd', entry);
-}
-
-export function Dice() {
-  const [pos, setPos] = useState(S.kv.dicePos || { x: window.innerWidth - 440, y: 70 });
-  const drag = useRef(null);
-  useEffect(() => {
-    const mv = (e) => { if (drag.current) setPos({ x: Math.max(0, Math.min(window.innerWidth - 120, e.clientX - drag.current.dx)), y: Math.max(0, Math.min(window.innerHeight - 60, e.clientY - drag.current.dy)) }); };
-    const up = () => { if (drag.current) { drag.current = null; setPos((p) => { setKv('dicePos', p); return p; }); } };
-    window.addEventListener('mousemove', mv); window.addEventListener('mouseup', up);
-    return () => { window.removeEventListener('mousemove', mv); window.removeEventListener('mouseup', up); };
-  }, []);
-  if (!dice.open) return '';
-  const upd = (fn) => { fn(); notify(); };
-  const n = (v, min, max) => Math.max(min, Math.min(max, parseInt(v, 10) || 0));
-  const hasD20 = dice.groups.some((g) => g.sides === 20);
-  return html`<div class="dice" style="left:${pos.x}px;top:${pos.y}px">
-    <div class="dhandle" onMouseDown=${(e) => { drag.current = { dx: e.clientX - pos.x, dy: e.clientY - pos.y }; e.preventDefault(); }}>
-      <b>🎲 Dice roller</b><span class="muted">drag to move</span><button class="x" onClick=${toggleDice} title="Close (Ctrl+D)">×</button></div>
-    <div class="dbody">
-      ${dice.groups.map((g, i) => html`<div class="dgroup">
-        <input type="number" min="1" max="100" value=${g.qty} onInput=${(e) => upd(() => { g.qty = n(e.target.value, 0, 100); })} />
-        <select value=${g.sides} onChange=${(e) => upd(() => { g.sides = Number(e.target.value); })}>${SIDES.map((s) => html`<option value=${s}>d${s}</option>`)}</select>
-        ${dice.groups.length > 1 ? html`<button class="x" title="Remove this die group" onClick=${() => upd(() => dice.groups.splice(i, 1))}>×</button>` : ''}
-      </div>`)}
-      <button class="ghost" onClick=${() => upd(() => dice.groups.push({ qty: 1, sides: 6 }))}>+ Add another die type</button>
-      <div class="drow">
-        <label>Modifier <input type="number" value=${dice.mod} onInput=${(e) => upd(() => { dice.mod = n(e.target.value, -999, 999); })} /></label>
-        <label>Repeat <input type="number" min="1" max="50" value=${dice.reps} onInput=${(e) => upd(() => { dice.reps = n(e.target.value, 1, 50); })} /> ×</label>
-      </div>
-      <div class="seg" title=${hasD20 ? 'Each d20 is rolled twice; the higher (advantage) or lower (disadvantage) counts' : 'Advantage and disadvantage apply to d20s — add a d20 to use them'}>
-        ${[['normal', 'Normal'], ['adv', 'Advantage'], ['dis', 'Disadvantage']].map(([k, l]) => html`<button class=${dice.mode === k ? 'on' : ''} disabled=${!hasD20 && k !== 'normal'} onClick=${() => upd(() => { dice.mode = k; })}>${l}</button>`)}
-      </div>
-      <button class="primary block" onClick=${roll}>Roll</button>
-      ${dice.last ? html`<div class="dresult"><div class="dexpr">${dice.last.expression}</div><pre>${dice.last.detail}</pre><div class="dtotal">${dice.last.total}</div></div>` : ''}
-      <div class="dloghead"><b>Log</b><button class="ghost" onClick=${() => { S.diceLog = []; dice.last = null; notify(); call('diceClear'); }}>Clear</button></div>
-      <div class="dlog">
-        ${S.diceLog.map((l) => html`<div class="dl"><small>${clock(l.created_at)} · ${l.expression}</small><pre>${l.detail}</pre></div>`)}
-        ${!S.diceLog.length ? html`<div class="muted">Rolls are kept here between sessions.</div>` : ''}
-      </div>
-    </div>
-  </div>`;
-}
-
-// ---------------------------------------------------------------- quick jump (Ctrl+K)
+// ---------------------------------------------------------------- command palette (Ctrl+K)
 const pal = { open: false };
 export function togglePalette() { pal.open = !pal.open; notify(); }
 const KIND = { npc: 'NPC', location: 'Location', faction: 'Faction', quest: 'Quest', encounter: 'Encounter', session: 'Session', monster: 'Monster', spell: 'Spell', item: 'Item', rule: 'Rule' };
+
+const whoseTurn = () => { const t = tracker(); const c = order(t).find((x) => x.id === t.turn); return c ? `Round ${t.round} — ${c.name}'s turn.` : 'No one is in the initiative tracker.'; };
+// Actions the palette can run. `words` are extra search terms.
+function actions() {
+  return [
+    { name: 'Next turn', hint: 'Space, in the tracker', words: 'initiative advance', run: () => { step(1); toast(whoseTurn()); } },
+    { name: 'Previous turn', hint: '←, in the tracker', words: 'initiative back', run: () => { step(-1); toast(whoseTurn()); } },
+    { name: 'Roll dice', hint: 'Ctrl+E — or type a roll here, like 2d6+3', words: 'quick roll', run: () => hooks.quickRoll() },
+    { name: 'Open the dice roller and history', hint: 'Ctrl+D', words: 'roll log', run: () => toggleDice(true) },
+    { name: 'Start a timer', hint: 'countdown in rounds or minutes', words: 'countdown new timer', run: () => toggleTimers(true) },
+    { name: 'Start or pause the stopwatch', hint: 'Ctrl+T', words: 'timer', run: toggleTimer },
+    { name: 'New note', hint: 'Ctrl+J', words: 'write session log', run: async () => { if (!activeSession()) await startSession(); hooks.note(); } },
+    { name: 'Emergency NPC', hint: 'Ctrl+N', words: 'generate random character name', run: () => toggleEmergency(true) },
+    { name: 'Pop out player view', hint: 'Ctrl+Shift+P', words: 'second monitor screen window display', run: () => popOutPlayer() },
+    ...(S.player?.open ? [{ name: 'Close player view', hint: '', words: 'window', run: () => call('playerClose') }] : []),
+    { name: 'Start a new session', hint: '', words: 'begin', run: startSession },
+    { name: 'Keyboard shortcuts', hint: '?', words: 'help keys reference', run: () => toggleShortcuts(true) },
+    ...[['tracker', 'Initiative tracker'], ['lookup', 'Rules & spells'], ['party', 'Party'], ['generators', 'Generators'], ['monster', 'Monsters'], ['settings', 'Settings & about']]
+      .map(([k, l]) => ({ name: 'Go to ' + l, hint: '', words: '', run: () => go(k) })),
+    ...S.c.encounter.map((e) => ({ name: 'Run encounter: ' + (e.name || '(unnamed)'), hint: 'load it into the tracker', words: 'start fight combat', run: () => { addEncounter(e); go('tracker'); } })),
+  ];
+}
+
 export function Palette() {
   const [q, setQ] = useState(''); const [hi, setHi] = useState(0);
   const ref = useRef();
-  useEffect(() => { if (pal.open) { setQ(''); setHi(0); ref.current?.focus(); } }, [pal.open]);
+  // Layout effect: focus lands before the next keystroke, so typing straight after Ctrl+K is never lost.
+  useLayoutEffect(() => { if (pal.open) { setQ(''); setHi(0); ref.current?.focus(); } }, [pal.open]);
   if (!pal.open) return '';
-  const ql = q.trim().toLowerCase().replace(/^#/, '');
+  const raw = q.trim();
+  const ql = raw.toLowerCase().replace(/^[#>]/, '').trim();
   const hits = [];
-  if (ql) {
+  const acts = actions();
+  if (!ql) acts.slice(0, 12).forEach((a) => hits.push({ a, s: 1 }));
+  else {
+    if (isDice(raw)) hits.push({ a: { name: 'Roll ' + raw, hint: 'Enter', run: () => roll(raw) }, s: 200 });
+    for (const a of acts) {
+      const n = a.name.toLowerCase();
+      const s = Math.max(nameScore(n, ql), ql.split(/\s+/).every((w) => (n + ' ' + a.words).includes(w)) ? 45 : 0);
+      if (s) hits.push({ a, s: s + (raw.startsWith('>') ? 100 : 0) });
+    }
     for (const t of ['npc', 'location', 'faction', 'quest', 'encounter', 'session']) for (const e of S.c[t]) {
       const s = Math.max(nameScore(label(e).toLowerCase(), ql), tagsOf(e).some((x) => x.toLowerCase().startsWith(ql)) ? 50 : 0);
       if (s) hits.push({ t, e, s: s + 5 });
@@ -115,27 +80,99 @@ export function Palette() {
     for (const [t, k] of [['monster', 'monsters'], ['spell', 'spells'], ['item', 'items'], ['rule', 'rules']]) for (const e of S[k]) {
       const s = nameScore(e._n, ql); if (s) hits.push({ t, e, s });
     }
-    hits.sort((a, b) => b.s - a.s || label(a.e).localeCompare(label(b.e)));
+    hits.sort((a, b) => b.s - a.s || (a.a ? a.a.name : label(a.e)).localeCompare(b.a ? b.a.name : label(b.e)));
     hits.length = Math.min(hits.length, 14);
   }
-  const pick = (h) => { if (!h) return; pal.open = false; open(h.t, h.e.id); };
+  const pick = (h) => { if (!h) return; pal.open = false; notify(); if (h.a) h.a.run(); else open(h.t, h.e.id); };
   return html`<div class="overlay" onMouseDown=${(e) => { if (e.target === e.currentTarget) togglePalette(); }}>
     <div class="palette">
-      <input ref=${ref} value=${q} placeholder="Jump to an NPC, place, faction, quest, session, monster, spell… (name or tag)"
+      <input ref=${ref} value=${q} placeholder="Jump to anything by name or tag, run an action (next turn, start timer…), or type a roll like 2d6+3"
         onInput=${(e) => { setQ(e.target.value); setHi(0); }}
         onKeyDown=${(e) => { if (e.key === 'ArrowDown') { e.preventDefault(); setHi(Math.min(hits.length - 1, hi + 1)); } else if (e.key === 'ArrowUp') { e.preventDefault(); setHi(Math.max(0, hi - 1)); } else if (e.key === 'Enter') pick(hits[hi]); else if (e.key === 'Escape') togglePalette(); }} />
-      ${hits.map((h, n) => html`<div class="mi ${n === hi ? 'hi' : ''}" onMouseDown=${() => pick(h)}><span>${label(h.e)}</span><small>${KIND[h.t]}${tagsOf(h.e).length ? ' · ' + tagsOf(h.e).join(', ') : ''}</small></div>`)}
+      ${hits.map((h, n) => (h.a
+        ? html`<div class="mi act ${n === hi ? 'hi' : ''}" onMouseDown=${(e) => { e.preventDefault(); pick(h); }}><span>▸ ${h.a.name}</span><small>${h.a.hint}</small></div>`
+        : html`<div class="mi ${n === hi ? 'hi' : ''}" onMouseDown=${(e) => { e.preventDefault(); pick(h); }}><span>${label(h.e)}</span><small>${KIND[h.t]}${tagsOf(h.e).length ? ' · ' + tagsOf(h.e).join(', ') : ''}</small></div>`))}
       ${ql && !hits.length ? html`<div class="mi muted">Nothing found.</div>` : ''}
     </div>
   </div>`;
 }
 
+// ---------------------------------------------------------------- shortcut reference (?)
+const SHORTCUTS = [
+  ['Anywhere', [
+    ['Ctrl K', 'Command palette: jump to anything, run an action, or type a roll'],
+    ['Ctrl E', 'Quick roll: type 2d6+3, Enter'],
+    ['Ctrl D', 'Dice roller and roll history'],
+    ['Ctrl N', 'Emergency NPC'],
+    ['Ctrl J', 'Write a note in the live session'],
+    ['Ctrl I', 'Initiative tracker'],
+    ['Ctrl L', 'Rules and spell lookup'],
+    ['Ctrl T', 'Start or pause the stopwatch'],
+    ['Ctrl Shift P', 'Pop out (or close) the player view'],
+    ['?', 'This list'],
+  ]],
+  ['Initiative tracker', [
+    ['Space / → / N', 'Next turn'],
+    ['← / P', 'Previous turn'],
+    ['↑ / ↓', 'Select a combatant'],
+    ['D', 'Damage the selected combatant: type the amount, Enter'],
+    ['H', 'Heal the selected combatant'],
+    ['C', 'Conditions menu, then the key shown beside each condition'],
+    ['V', 'Hide or show the selected combatant in the player view'],
+  ]],
+  ['Elsewhere', [
+    ['R', 'Reroll (Generators screen and the Emergency NPC panel)'],
+    ['F11 / Esc', 'Player view: enter or leave full screen'],
+    ['F12', 'Developer tools, for diagnosing problems'],
+  ]],
+];
+const Keys = ({ k }) => k.split(' / ').map((alt, n) => html`${n ? ' / ' : ''}${alt.split(' ').map((p, i) => html`${i ? '+' : ''}<kbd>${p}</kbd>`)}`);
+const ShortcutTable = () => html`<div class="keycols">${SHORTCUTS.map(([title, rows]) => html`<div><h4>${title}</h4>
+  <table class="plain keys">${rows.map(([k, what]) => html`<tr><td><${Keys} k=${k} /></td><td>${what}</td></tr>`)}</table></div>`)}</div>
+  <p class="muted">On macOS use ⌘ in place of Ctrl.</p>`;
+
+const sc = { open: false };
+export function toggleShortcuts(force) { sc.open = typeof force === 'boolean' ? force : !sc.open; notify(); }
+export function Shortcuts() {
+  useEffect(() => {
+    if (!sc.open) return undefined;
+    const h = (e) => { if (e.key === 'Escape') { e.preventDefault(); toggleShortcuts(false); } };
+    window.addEventListener('keydown', h); return () => window.removeEventListener('keydown', h);
+  }, [sc.open]);
+  if (!sc.open) return '';
+  return html`<div class="overlay" onMouseDown=${(e) => { if (e.target === e.currentTarget) toggleShortcuts(false); }}>
+    <div class="modal wide"><h3>Keyboard shortcuts <button class="x" title="Close (Esc)" onClick=${() => toggleShortcuts(false)}>×</button></h3><${ShortcutTable} /></div></div>`;
+}
+
 // ---------------------------------------------------------------- settings
 export async function newCampaign(name) {
-  const c = await call('save', 'campaign', { name });
+  const c = await call('save', 'campaign', { name, system: '5E (2024 rules)' });
   S.campaigns.push(c);
   await openCampaign(c.id);
   go('npc');
+}
+
+// XP budget per character, by party level and tier. Used by the encounter builder; every cell is editable
+// so a GM can match their own books or house rules.
+function Thresholds() {
+  const ref = useRef();
+  useEffect(() => { if (S.route.section === 'thresholds') ref.current?.scrollIntoView({ block: 'start' }); }, [S.route.section]);
+  const cell = (level, tier) => S.thresholds.find((t) => t.level === level && t.tier === tier);
+  const set = (level, tier, v) => {
+    const xp = Math.max(0, parseInt(v, 10) || 0);
+    const t = cell(level, tier);
+    if (t) t.xp = xp; else S.thresholds.push({ level, tier, xp });
+    notify();
+    call('setThreshold', level, tier, xp);
+  };
+  return html`<section ref=${ref}><h2>Encounter difficulty <small>XP budget per character — the encounter builder multiplies it by your party size</small></h2>
+    <p class="muted">The defaults are the “XP Budget per Character” table from SRD 5.2. Change any number to match your own books or house rules; changes save as you type.</p>
+    <table class="plain thresholds">
+      <tr class="th"><td>Party level</td>${TIERS.map(([, l]) => html`<td>${l}</td>`)}</tr>
+      ${Array.from({ length: 20 }, (_, i) => i + 1).map((level) => html`<tr><td>${level}</td>
+        ${TIERS.map(([k]) => html`<td><input type="number" min="0" value=${cell(level, k)?.xp ?? ''} onInput=${(e) => set(level, k, e.target.value)} /></td>`)}</tr>`)}
+    </table>
+  </section>`;
 }
 
 export function SettingsScreen() {
@@ -151,7 +188,7 @@ export function SettingsScreen() {
       ${c ? html`<div class="grid">
         <${Field} label="Name"><${Bound} type="campaign" obj=${c} k="name" /><//>
         <${Field} label="Rules system" hint="free text"><input list="systems" value=${c.system} onInput=${(e) => edit('campaign', c, { system: e.target.value })} />
-          <datalist id="systems"><option value="D&D 2024 (5.5e)" /><option value="D&D 2014 (5e)" /></datalist><//>
+          <datalist id="systems"><option value="5E (2024 rules)" /><option value="5E (2014 rules)" /></datalist><//>
         <${Field} label="Campaign notes" wide><${Bound} type="campaign" obj=${c} k="notes" area rows=${5} placeholder="Premise, house rules, things to remember" /><//>
       </div>
       <div class="rowbtns">
@@ -171,26 +208,16 @@ export function SettingsScreen() {
         <input placeholder="+ Add a condition — type a name, press Enter" onKeyDown=${addCond} />
       </div>
     </section>
-    <section><h2>Keyboard shortcuts</h2>
-      <table class="plain keys">
-        <tr><td><kbd>Ctrl</kbd>+<kbd>K</kbd></td><td>Jump to anything by name or tag</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>L</kbd></td><td>Rules and spell lookup</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd></td><td>Initiative tracker</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>J</kbd></td><td>Write a note in the live session</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>D</kbd></td><td>Show or hide the dice roller</td></tr>
-        <tr><td><kbd>Ctrl</kbd>+<kbd>T</kbd></td><td>Start or pause the timer</td></tr>
-        <tr><td><kbd>Space</kbd> / <kbd>→</kbd> / <kbd>←</kbd></td><td>Next / previous turn (in the tracker)</td></tr>
-      </table>
-      <p class="muted">On macOS use ⌘ in place of Ctrl.</p>
-    </section>
+    <${Thresholds} />
+    <section><h2>Keyboard shortcuts <small>press ? on any screen to see this list</small></h2><${ShortcutTable} /></section>
     <section><h2>Your data</h2>
       <p>Everything is stored in one file on this computer. Back it up by copying it.</p>
       <p><code>${S.dbFile}</code> <button onClick=${() => call('showDataFile')}>Show in folder</button></p>
     </section>
     <section><h2>About & credits</h2>
-      <p>DM Helper 1.0 — built for the D&D 2024 revised rules.</p>
+      <p>Roll Ready 2.0 — a local-first helper for game masters. 5E compatible (2024 rules).</p>
       <p class="attrib">${S.attribution}</p>
-      <p class="muted">Built-in rules, spells, items and monsters are SRD 5.2 content only. Anything marked “Mine” is your own.</p>
+      <p class="muted">Built-in rules, spells, items and monsters are SRD 5.2 content only. Anything marked “Mine” is your own. The generator tables (names, taverns, rumors, treasure, emergency NPCs) are original content written for Roll Ready.</p>
     </section>
   </div>`;
 }

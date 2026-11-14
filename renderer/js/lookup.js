@@ -1,7 +1,7 @@
 // Rules, spell, item and monster lookup. Everything is already in memory, so search is a plain scan per keystroke.
 import { html, useState, useRef, useEffect, S, byId, create, edit, del, go, notify, nameScore, md, esc } from './lib.js';
 import { Field, Empty } from './components.js';
-import { StatBlock, MonsterActions } from './monsters.js';
+import { StatBlock, MonsterActions, Pin, newHomebrew } from './monsters.js';
 
 // SRD 5.2 leaves some 2024 content out on purpose. When a search hits one of these names,
 // say so instead of showing an empty list. Not exhaustive — add names as they come up.
@@ -19,6 +19,7 @@ function excludedHit(q) {
   return null;
 }
 
+const title = (s) => s.replace(/\b\w/g, (c) => c.toUpperCase());
 const TYPES = [['all', 'All'], ['spell', 'Spells'], ['rule', 'Rules'], ['item', 'Items'], ['monster', 'Monsters']];
 const POOL = { spell: 'spells', rule: 'rules', item: 'items', monster: 'monsters' };
 const ui = { q: '', type: 'all', src: 'all', sel: null, editing: false };   // survives switching screens
@@ -63,11 +64,13 @@ function Body({ text, q }) {
 const Src = ({ e }) => html`<span class="src ${e.source === 'SRD' ? 'srd' : 'mine'}">${e.source === 'SRD' ? 'SRD' : 'Mine'}</span>`;
 const fact = (k, v) => (v ? html`<div class="fact"><small>${k}</small><div>${v}</div></div>` : '');
 
-function View({ t, e, q }) {
+// One entry, rendered. Also used for the pinned panels beside the initiative tracker (`compact`:
+// no buttons, tighter text).
+export function EntryView({ t, e, q = '', compact }) {
   const d = e.data || {};
-  if (t === 'monster') return html`<div class="lkhead"><${MonsterActions} m=${e} /><button onClick=${() => go('monster', e.id)}>Open in library</button></div><${StatBlock} m=${e} />`;
-  return html`<div class="entry">
-    <h2>${e.name} <${Src} e=${e} /></h2>
+  if (t === 'monster') return html`${compact ? '' : html`<div class="lkhead"><${MonsterActions} m=${e} /><${Pin} t="monster" id=${e.id} /><button onClick=${() => go('monster', e.id)}>Open in library</button></div>`}<${StatBlock} m=${e} />`;
+  return html`<div class="entry ${compact ? 'compact' : ''}">
+    ${compact ? '' : html`<h2>${e.name} <${Src} e=${e} /></h2>`}
     <div class="sub">${meta(t, e)}${t === 'spell' && d.classes ? ` (${d.classes})` : ''}${t === 'item' && d.attunement ? ' · Requires Attunement' : ''}</div>
     ${t === 'spell' ? html`<div class="facts">${fact('Casting Time', d.casting_time)}${fact('Range', d.range)}${fact('Components', d.components)}${fact('Duration', d.duration)}</div>` : ''}
     ${t === 'item' && (d.cost || d.weight) ? html`<div class="facts">${fact('Cost', d.cost)}${fact('Weight', d.weight)}</div>` : ''}
@@ -141,7 +144,10 @@ export function LookupScreen() {
     </div>
     <div class="two">
       <div class="listpane">
-        ${gap ? html`<div class="gap"><b>“${gap.name.replace(/\b\w/g, (c) => c.toUpperCase())}” isn't included in the open ruleset (SRD 5.2).</b> Check your ${gap.where}. You can add your own version with the + buttons above${ui.type === 'monster' || gap.where === 'Monster Manual' ? ' or as a homebrew monster' : ''}.</div>` : ''}
+        ${gap ? html`<div class="gap"><b>“${title(gap.name)}” isn't included in the open ruleset (SRD 5.2).</b> Check your ${gap.where}. You can add your own version with the + buttons above.
+          ${ui.type === 'monster' || gap.where === 'Monster Manual' ? html`<div class="gapadd"><button class="primary" onClick=${() => newHomebrew(title(gap.name))}>+ Add “${title(gap.name)}” as a homebrew monster</button></div>` : ''}</div>` : ''}
+        ${!gap && q && ui.type === 'monster' && !res.length ? html`<div class="gap"><b>No monster by that name in the library.</b> The built-in library is SRD 5.2 only.
+          <div class="gapadd"><button class="primary" onClick=${() => newHomebrew(ui.q.trim())}>+ Add “${ui.q.trim()}” as a homebrew monster</button></div></div>` : ''}
         ${named && !res.some((r) => r.s >= 40) ? html`<div class="gap"><b>Named spells appear in the SRD under generic names.</b> Try <a onClick=${() => set({ q: ui.q.replace(NAMED, ''), sel: null })}>“${ui.q.replace(NAMED, '')}”</a>.</div>` : ''}
         <div class="rows">
           ${res.map((r) => html`<div key=${r.t + r.e.id} class="row ${r.e === cur ? 'on' : ''}" onClick=${() => set({ sel: r.t + ':' + r.e.id, editing: false })}>
@@ -152,10 +158,11 @@ export function LookupScreen() {
       </div>
       <div class="detail">
         ${cur ? html`
-          ${cur.source !== 'SRD' && ct !== 'monster' ? html`<div class="lkhead">
-            <button onClick=${() => set({ sel: ct + ':' + cur.id, editing: !editing })}>${editing ? '✓ Done editing' : '✎ Edit'}</button>
-            <button class="danger ghost" onClick=${async () => { if (await del(ct, cur)) set({ sel: null, editing: false }); }}>Delete</button></div>` : ''}
-          ${editing ? html`<${Editor} key=${cur.id} t=${ct} e=${cur} />` : html`<${View} t=${ct} e=${cur} q=${q} />`}`
+          ${ct !== 'monster' ? html`<div class="lkhead">
+            <${Pin} t=${ct} id=${cur.id} />
+            ${cur.source !== 'SRD' ? html`<button onClick=${() => set({ sel: ct + ':' + cur.id, editing: !editing })}>${editing ? '✓ Done editing' : '✎ Edit'}</button>
+            <button class="danger ghost" onClick=${async () => { if (await del(ct, cur)) set({ sel: null, editing: false }); }}>Delete</button>` : ''}</div>` : ''}
+          ${editing ? html`<${Editor} key=${cur.id} t=${ct} e=${cur} />` : html`<${EntryView} t=${ct} e=${cur} q=${q} />`}`
         : html`<${Empty}>Results show here. Arrow keys move through the list.<//>`}
       </div>
     </div>

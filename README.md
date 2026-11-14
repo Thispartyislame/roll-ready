@@ -1,8 +1,9 @@
-# DM Helper
+# Roll Ready
 
-A local-first desktop app for prepping and running D&D campaigns: world notes, a session log, an
-initiative tracker, rules and spell lookup, a dice roller and a stopwatch. Built for the 2024 revised
-rules (5.5e) with SRD 5.2 as the bundled rules data. Works fully offline; no account, no server.
+A local-first desktop app for game masters: prep a campaign, then run it at the table. World notes,
+a session log, an encounter builder, an initiative tracker with a player-facing view, rules and
+spell lookup, dice, timers and generators. 5E compatible, built for the 2024 rules with SRD 5.2 as
+the bundled rules data. Works fully offline; no account, no server.
 
 ## Run it
 
@@ -19,8 +20,8 @@ That's it — there are no native modules to compile and no build step.
 ## Build an installer
 
 ```
-npm run dist:win     # on Windows  -> dist/DM Helper Setup x.y.z.exe
-npm run dist:mac     # on a Mac    -> dist/DM Helper-x.y.z.dmg
+npm run dist:win     # on Windows  -> dist/Roll Ready Setup x.y.z.exe
+npm run dist:mac     # on a Mac    -> dist/Roll Ready-x.y.z.dmg
 ```
 
 Build each on its own OS (a Mac build can't be made on Windows). The builds are unsigned, so
@@ -31,40 +32,71 @@ Windows SmartScreen and macOS Gatekeeper will warn the first time: on Windows ch
 
 One SQLite file, created on first launch:
 
-- Windows: `%APPDATA%\DM Helper\dm-helper.sqlite`
-- macOS: `~/Library/Application Support/DM Helper/dm-helper.sqlite`
+- Windows: `%APPDATA%\Roll Ready\roll-ready.sqlite`
+- macOS: `~/Library/Application Support/Roll Ready/roll-ready.sqlite`
 
 Settings → "Show in folder" opens it. Copy the file to back it up or move it to another computer.
-Set the `DMHELPER_DB` environment variable to point the app at a different file.
+Set the `ROLLREADY_DB` environment variable to point the app at a different file.
+
+**Upgrading from version 1 (DM Helper):** on first launch Roll Ready copies your old
+`DM Helper/dm-helper.sqlite` to the new location and upgrades the copy. The old file is left alone.
 
 ## What's in it
 
 | Area | What it does |
 |---|---|
-| **NPCs, Locations, Factions, Quests** | Type a name, press Enter, it exists. Every field saves as you type. Link anything to anything and click through: NPC ↔ faction, NPC → location, nested locations, quest ↔ NPCs and locations. Filter by name or tag. |
-| **Sessions & notes** | Start a session, then log one-line notes. `@` links an NPC or quest as you type (and can create a new NPC on the spot). The top bar has a quick-note field that works from any screen. Search every note by text, NPC or quest. |
-| **Encounters** | Prep monsters (with quantities) and NPCs ahead of time, then send the whole thing to the tracker in one click. |
-| **Initiative tracker** | Add from the monster library, your NPCs, a prepped encounter, or quick-add by name. Initiative is rolled on add (one roll per monster group). HP, AC, damage/heal box, conditions (Exhaustion has levels), concentration with the save DC shown when damage lands, Bloodied tag, stat block alongside. Per-row remove; removing the active combatant passes the turn on. Combatants at 0 HP grey out and are skipped. |
-| **Rules & spells** | Search-as-you-type over SRD 5.2: 339 spells, the full rules glossary, conditions, core rules, gameplay toolbox, equipment, magic items and 331 monsters. Your own spells, items and house rules sit alongside, tagged **Mine** vs **SRD**. Searching for something the SRD leaves out (Beholder, Artificer…) tells you so and where to look. |
-| **Monsters** | SRD stat blocks in the 2024 format, plus your own: create from scratch or duplicate an SRD monster and edit it. Shared across all campaigns. |
-| **Dice roller** | Draggable overlay. Any number of die groups (1d12 + 2d4 …), a modifier, repetitions (each listed, grand total underneath), advantage/disadvantage on d20s, and a log that persists. |
-| **Timer** | Stopwatch in the top bar; keeps running whatever screen you're on. |
+| **NPCs, Locations, Factions, Quests** | Type a name, press Enter, it exists. Every field saves as you type. Link anything to anything and click through. Filter by name or tag. |
+| **Party** | Add your players' characters once per campaign (name, AC, max HP, initiative bonus). They load into the tracker with every encounter. |
+| **Sessions & notes** | Start a session, then log one-line notes. `@` links an NPC or quest as you type. The top bar has a quick-note field that works from any screen. Search every note by text, NPC or quest. |
+| **Encounters** | Add monsters with quantities, optional table names and fixed HP. Shows total XP and a difficulty label (Low / Moderate / High) for your party size and level. **Run encounter** loads every creature plus the party into the tracker, numbered (Goblin 1, Goblin 2…), with average or rolled hit points. |
+| **Initiative tracker** | Add from the monster library, NPCs, a prepped encounter, the party, or quick-add by name. HP, AC, damage/heal, conditions, concentration (with the save DC when damage lands), Bloodied tag, stat block alongside. A banner reminds you of conditions, concentration and timers when a combatant's turn starts. **End combat…** saves who's standing to the session log. The whole state survives a restart. |
+| **Player view** | A separate read-only window for a second monitor, projector or shared screen: turn order, whose turn it is, round, conditions and (optionally) Healthy / Bloodied / Near death. Never shows HP numbers, stat blocks, notes or hidden combatants. Pop it out from the tracker, send it to a display, F11 for full screen. Light and dark themes. |
+| **Dice** | Quick-roll bar in the top bar (`2d6+3`, `d20`, `4d6kh3`, `2d20kl1+5`, `d%`), click-to-roll numbers in stat blocks, a draggable roller with history, and "→ notes" to log a roll to the live session. Every die is shown, dropped dice in parentheses. |
+| **Timers** | Any number of named countdowns, in real time (`60:00`) or combat rounds. Round timers tick when the tracker starts a new round, can be attached to a combatant, and turn red when they expire. The stopwatch is still in the top bar. |
+| **Rules & spells** | Search-as-you-type over SRD 5.2: spells, rules glossary, conditions, equipment, magic items and monsters, with your own entries alongside. **Pin** any entry to keep it beside the initiative tracker. Searching for something the SRD leaves out says so and offers to add it as a homebrew monster. |
+| **Monsters** | SRD stat blocks in the 2024 format plus your own. Filter by CR, type and source. Create from scratch, or duplicate one and edit it. |
+| **Generators** | NPC names in five styles, tavern names, shops and stock, rumors, weather and treasure by CR tier. Reroll with `R`, save a result to the campaign, copy it, or add it to the session notes. Every table is editable and you can add your own. |
+| **Emergency NPC** | `Ctrl+N` from anywhere: a named character with a role, look, voice, want, secret and hook, instantly. Lock the parts you like and reroll the rest; filter by setting, attitude and naming style; save as an NPC tagged `emergency`. |
+| **Command palette** | `Ctrl+K`: jump to anything by name or tag, run an action (next turn, start timer, run an encounter, pop out the player view…), or type a roll. |
 
 ### Shortcuts
 
-`Ctrl+K` jump to anything · `Ctrl+L` lookup · `Ctrl+I` initiative · `Ctrl+J` quick note ·
-`Ctrl+D` dice · `Ctrl+T` timer · `Space`/`→`/`←` next/previous turn. (⌘ on macOS.)
+Press `?` on any screen for the full list. (⌘ in place of Ctrl on macOS.)
+
+| Keys | What it does |
+|---|---|
+| `Ctrl+K` | Command palette |
+| `Ctrl+E` | Quick roll |
+| `Ctrl+D` | Dice roller and history |
+| `Ctrl+N` | Emergency NPC |
+| `Ctrl+J` | Quick note to the live session |
+| `Ctrl+I` / `Ctrl+L` | Initiative tracker / rules lookup |
+| `Ctrl+T` | Start or pause the stopwatch |
+| `Ctrl+Shift+P` | Pop out or close the player view |
+| `Space` `→` `N` / `←` `P` | Next / previous turn (tracker) |
+| `↑` `↓` | Select a combatant (tracker) |
+| `D` / `H` | Damage / heal the selected combatant |
+| `C` | Conditions menu; then the key beside each condition |
+| `V` | Hide or show the selected combatant in the player view |
+| `R` | Reroll (Generators, Emergency NPC) |
+| `F11` / `Esc` | Player view full screen on / off |
 
 ## Things worth knowing
 
 - **0 HP skipping** only applies to combatants whose HP you're tracking. Players added with just a
   name and initiative are never skipped; if you do track a PC's HP and they drop to 0, they are
   skipped like anyone else (edit their HP or use Prev to bring them back for death saves).
-- **"New combat"** clears monsters and NPCs but keeps anyone marked PC, so the party stays put.
+- **"End combat…"** clears monsters and NPCs but keeps anyone marked PC, so the party stays put.
+- **Encounter difficulty** uses an XP budget per character that you can edit under Settings. The
+  defaults are the table from SRD 5.2.
+- **The player view is a window on this computer**, not a web page: drag it to a second monitor or
+  share that window in your video call. It does not reach players' own devices.
+- **Expired timers are flagged, not removed** — click an expired chip to clear it.
+- **Generator content is original** to this app; edit or replace any of it under Generators.
 - **SRD entries are read-only.** Duplicate a monster to change it; add your own spells, items and
   rules with the + buttons on the lookup screen.
 - **The condition list is editable** (Settings) for tables that run different rules.
-- The lookup covers DM-facing reference. Class features, species, feats and backgrounds from the
+- The lookup covers GM-facing reference. Class features, species, feats and backgrounds from the
   SRD are not included.
 - Not in this version, by design: battle maps, tokens, player character sheets, sync/accounts,
   AI generation, import/export.
