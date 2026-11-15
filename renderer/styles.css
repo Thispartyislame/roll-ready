@@ -335,3 +335,5 @@ table.enc td.muted, td.qty input, .qtyin, table.thresholds input { font-family: 
 ::-webkit-scrollbar-thumb { background: var(--line2); border-color: var(--bg); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 .chipsel button.on { color: var(--accent); } .mi.hi small, .mi:hover small { color: var(--text); }
+/* A full-width button in the list pane keeps the pane's side margins (width: 100% plus margins overflowed). */
+.listpane > button.block { width: auto; align-self: stretch; }
