@@ -8,7 +8,7 @@ export { render, useMemo, useLayoutEffect } from '../vendor/htm-preact.js';
 // screen filters and searches without touching the disk. Writes go through IPC.
 export const S = {
   ready: false, campaigns: [], cid: null,
-  c: { npc: [], location: [], faction: [], quest: [], session: [], note: [], encounter: [], party_member: [], timer: [] },
+  c: { npc: [], location: [], faction: [], quest: [], session: [], note: [], encounter: [], party_member: [], timer: [], sound_button: [] },
   monsters: [], spells: [], items: [], rules: [], conditions: [], thresholds: [], genTables: [], diceLog: [], lastRoll: null, kv: {},
   route: { screen: 'npc', id: null },
   toast: null,

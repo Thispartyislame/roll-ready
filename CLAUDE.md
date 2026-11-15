@@ -35,6 +35,10 @@ the visual rules). Where they conflict with this file, this file wins.
 - `generators.js`: roll-table engine and Generators screen. `npcgen.js`: Emergency NPC overlay;
   `generateNpc()` returns a plain object of named fields. Emergency tables are the `enpc_*` keys
   in `data/generators.json`; filters are discovered by key prefix.
+- **Soundboard** (added after Phase 2, schema v3): `soundboard.js` (buttons, playback, editor),
+  `board.html` + `js/board.js` + `preload-board.js` (always-on-top pop-out; a remote that reports
+  presses, the GM window does the playing). Media is copied to `roll-ready-media/` beside the
+  database and served through the `rrmedia:` scheme; unused files are swept at startup.
 - `tools.js`: stopwatch, command palette with actions, shortcut overlay (`?`), Settings with the
   editable thresholds grid. `app.js`: nav, header, global hotkeys.
 - **Licensing finding:** the "XP Budget per Character" table IS in SRD 5.2 (Gameplay Toolbox →
@@ -46,7 +50,9 @@ the visual rules). Where they conflict with this file, this file wins.
 - Overlays use the `.overlay` class; the tracker's single-key shortcuts are disabled while one is
   open, so any new modal should use it too.
 - Focus for anything typed into immediately after a hotkey goes in a layout effect (see `Palette`).
-- Only `publicState()` may decide what the player window sees.
+- The player window sees only two things, both sent by the GM window: `publicState()` from
+  `combat.js` (the tracker) and a picture or clip the GM fires from the soundboard (`playerMedia`).
+  Nothing else may be sent to it.
 - No `confirm()` for undoable actions: `del()` hides the entry and shows a toast with Undo (the row
   is removed from the file when the toast goes, on window blur, or on a campaign switch);
   `withUndo()` in `combat.js` does the same for tracker changes. Only deleting a campaign asks.

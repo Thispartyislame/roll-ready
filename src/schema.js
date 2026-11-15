@@ -251,4 +251,22 @@ module.exports = [
   CREATE INDEX idx_party_campaign ON party_member(campaign_id);
   CREATE INDEX idx_timer_campaign ON timer(campaign_id);
   `,
+
+  // ---- v3: soundboard buttons. Media files are copied into the "roll-ready-media" folder beside the database.
+  `
+  CREATE TABLE sound_button (
+    id INTEGER PRIMARY KEY,
+    campaign_id INTEGER NOT NULL REFERENCES campaign(id) ON DELETE CASCADE,
+    label TEXT NOT NULL DEFAULT '',
+    color TEXT NOT NULL DEFAULT '',            -- '', 'blue', 'violet', 'good', 'orange' or 'bad'
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    audio TEXT NOT NULL DEFAULT '',            -- file name in the media folder
+    visual TEXT NOT NULL DEFAULT '',           -- picture or video shown on the player view
+    visual_kind TEXT NOT NULL DEFAULT '',      -- 'image' | 'video'
+    volume INTEGER NOT NULL DEFAULT 100,       -- 0-100
+    loop INTEGER NOT NULL DEFAULT 0,
+    duration INTEGER NOT NULL DEFAULT 0        -- seconds until it stops and disappears; 0 = no limit
+  );
+  CREATE INDEX idx_sound_campaign ON sound_button(campaign_id);
+  `,
 ];

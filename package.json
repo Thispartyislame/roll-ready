@@ -22,6 +22,7 @@
       "main.js",
       "preload.js",
       "preload-player.js",
+      "preload-board.js",
       "src/**",
       "data/**",
       "renderer/**",

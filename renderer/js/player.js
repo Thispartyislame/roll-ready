@@ -51,6 +51,23 @@
   themeBtn.addEventListener('click', () => window.table.setTheme(theme === 'light' ? 'dark' : 'light'));
   document.getElementById('full').addEventListener('click', () => window.table.toggleFullscreen());
 
+  // A picture or clip the GM is showing the table. It covers the list until the GM takes it down, its time
+  // limit runs out, or (for a clip) it ends.
+  const stage = document.getElementById('media');
+  window.table.onMedia((m) => {
+    stage.textContent = '';
+    if (!m) { stage.hidden = true; return; }
+    let node;
+    if (m.kind === 'video') {
+      node = document.createElement('video');
+      node.autoplay = true; node.loop = !!m.loop; node.volume = m.volume ?? 1;
+      node.addEventListener('ended', () => window.table.mediaEnded(m.token));
+      node.addEventListener('error', () => window.table.mediaEnded(m.token));
+    } else { node = document.createElement('img'); node.alt = ''; }
+    node.src = m.url;
+    stage.append(node); stage.hidden = false;
+  });
+
   // Controls and the cursor fade away when the mouse is still, so a shared screen stays clean.
   let idle;
   const wake = () => { document.body.classList.remove('idle'); clearTimeout(idle); idle = setTimeout(() => document.body.classList.add('idle'), 2500); };

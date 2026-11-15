@@ -1,0 +1,5 @@
+/* Soundboard pop-out. Tokens and the .sbbtn button come from styles.css. */
+body.deck { display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+.deckbar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); background: var(--panel); }
+.deckgrid { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); grid-auto-rows: minmax(76px, auto); gap: 6px; padding: 8px; align-content: start; }
+.deckgrid .empty { grid-column: 1 / -1; }

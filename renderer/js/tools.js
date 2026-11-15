@@ -7,6 +7,7 @@ import { step, tracker, order, addEncounter } from './combat.js';
 import { popOutPlayer } from './tracker.js';
 import { toggleEmergency } from './npcgen.js';
 import { startSession, activeSession } from './sessions.js';
+import { buttons, fire, stopAll, toggleBoard } from './soundboard.js';
 
 // Things the shell (app.js) knows how to do, for the command palette: focus the quick-note or quick-roll field.
 export const hooks = { note: () => {}, quickRoll: () => {} };
@@ -47,11 +48,14 @@ function actions() {
     { name: 'Emergency NPC', hint: 'Ctrl+N', words: 'generate random character name', run: () => toggleEmergency(true) },
     { name: 'Pop out player view', hint: 'Ctrl+Shift+P', words: 'second monitor screen window display', run: () => popOutPlayer() },
     ...(S.player?.open ? [{ name: 'Close player view', hint: '', words: 'window', run: () => call('playerClose') }] : []),
+    { name: S.player?.board ? 'Close the pop-out soundboard' : 'Pop out the soundboard', hint: 'Ctrl+Shift+B', words: 'sound board deck window', run: toggleBoard },
+    { name: 'Stop all sounds', hint: '', words: 'soundboard silence picture video', run: stopAll },
     { name: 'Start a new session', hint: '', words: 'begin', run: startSession },
     { name: 'Switch theme: ' + (window.rrTheme.resolved() === 'light' ? 'dark' : 'light'), hint: '', words: 'appearance mode night day', run: () => setTheme(window.rrTheme.resolved() === 'light' ? 'dark' : 'light') },
     { name: 'Keyboard shortcuts', hint: '?', words: 'help keys reference', run: () => toggleShortcuts(true) },
-    ...[['tracker', 'Initiative tracker'], ['lookup', 'Rules & spells'], ['party', 'Party'], ['generators', 'Generators'], ['monster', 'Monsters'], ['settings', 'Settings & about']]
+    ...[['tracker', 'Initiative tracker'], ['lookup', 'Rules & spells'], ['party', 'Party'], ['generators', 'Generators'], ['soundboard', 'Soundboard'], ['monster', 'Monsters'], ['settings', 'Settings & about']]
       .map(([k, l]) => ({ name: 'Go to ' + l, hint: '', words: '', run: () => go(k) })),
+    ...buttons().filter((b) => b.label).map((b) => ({ name: 'Play: ' + b.label, hint: 'soundboard', words: 'sound picture video', run: () => fire(b) })),
     ...S.c.encounter.map((e) => ({ name: 'Run encounter: ' + (e.name || '(unnamed)'), hint: 'load it into the tracker', words: 'start fight combat', run: () => { addEncounter(e); go('tracker'); } })),
   ];
 }
@@ -110,6 +114,7 @@ const SHORTCUTS = [
     ['Ctrl L', 'Rules and spell lookup'],
     ['Ctrl T', 'Start or pause the stopwatch'],
     ['Ctrl Shift P', 'Pop out (or close) the player view'],
+    ['Ctrl Shift B', 'Pop out (or close) the soundboard'],
     ['?', 'This list'],
   ]],
   ['Initiative tracker', [
@@ -123,6 +128,7 @@ const SHORTCUTS = [
   ]],
   ['Elsewhere', [
     ['R', 'Reroll (Generators screen and the Emergency NPC panel)'],
+    ['1 – 9 / 0', 'Soundboard: press a button; Esc stops everything'],
     ['F11 / Esc', 'Player view: enter or leave full screen'],
     ['F12', 'Developer tools, for diagnosing problems'],
   ]],

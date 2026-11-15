@@ -7,4 +7,7 @@ contextBridge.exposeInMainWorld('table', {
   onState: (cb) => ipcRenderer.on('player:state', (_e, state) => cb(state)),
   toggleFullscreen: () => ipcRenderer.invoke('player:fullscreen'),
   setTheme: (theme) => ipcRenderer.invoke('player:theme', theme),
+  // A picture or clip the GM is showing the table, and telling the GM when a clip has finished.
+  onMedia: (cb) => ipcRenderer.on('player:media', (_e, media) => cb(media)),
+  mediaEnded: (token) => ipcRenderer.send('player:mediaEnded', token),
 });

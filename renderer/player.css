@@ -46,4 +46,9 @@ main::-webkit-scrollbar { width: 0; }
 .health.healthy { color: var(--good); } .health.bloodied { color: var(--warn); } .health.near-death { color: var(--bad); } .health.down { color: var(--muted); }
 
 .waiting { margin: auto; text-align: center; } .wtitle { font: 600 1.6em Georgia, "Iowan Old Style", serif; } .wsub { color: var(--muted); font-size: .8em; margin-top: .3em; }
+/* A picture or clip from the GM's soundboard, shown over the list. */
+#media { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; animation: show .25s ease-out; }
+#media[hidden] { display: none; }
+#media img, #media video { width: 100%; height: 100%; object-fit: contain; }
+@keyframes show { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

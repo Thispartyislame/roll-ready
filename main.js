@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, shell, Menu, screen, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu, screen, nativeTheme, dialog, protocol, net } = require('electron');
+const { pathToFileURL } = require('node:url');
 const path = require('node:path');
 const fs = require('node:fs');
 const { Store } = require('./src/db');
@@ -6,6 +7,9 @@ const { Store } = require('./src/db');
 let store;
 let win;            // the GM window
 let player = null;  // the player-facing window (optional, local only)
+let board = null;   // the soundboard pop-out (optional): a remote control for the GM window
+let boardState = { buttons: [], playing: [], theme: 'dark' };
+let mediaDir;
 let publicState = { round: 1, combatants: [], theme: 'auto' };   // last sanitized tracker state from the GM window
 
 // ---------------------------------------------------------------- data file
@@ -21,6 +25,58 @@ function dataFile() {
   return file;
 }
 
+// ---------------------------------------------------------------- soundboard media
+// Sounds, pictures and clips are copied into a folder beside the database and served to the windows
+// through the rrmedia: scheme, so the pages never get general file access.
+protocol.registerSchemesAsPrivileged([{ scheme: 'rrmedia', privileges: { standard: true, secure: true, stream: true, supportFetchAPI: true } }]);
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');   // a board button may be pressed in another window
+
+const AUDIO = ['mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac', 'opus'];
+const IMAGE = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'bmp'];
+const VIDEO = ['mp4', 'webm', 'mov', 'm4v', 'ogv'];
+const kindOf = (file) => { const ext = path.extname(file).slice(1).toLowerCase(); return AUDIO.includes(ext) ? 'audio' : IMAGE.includes(ext) ? 'image' : VIDEO.includes(ext) ? 'video' : null; };
+
+async function mediaPick(want) {
+  const filters = want === 'audio' ? [{ name: 'Sounds', extensions: AUDIO }] : [{ name: 'Pictures and video', extensions: [...IMAGE, ...VIDEO] }];
+  const r = await dialog.showOpenDialog(win, { title: want === 'audio' ? 'Choose a sound' : 'Choose a picture or video', properties: ['openFile'], filters });
+  if (r.canceled || !r.filePaths[0]) return null;
+  const src = r.filePaths[0]; const kind = kindOf(src);
+  if (!kind || (want === 'audio') !== (kind === 'audio')) throw new Error(want === 'audio' ? 'That isn\'t a sound file this app can play.' : 'That isn\'t a picture or video this app can show.');
+  fs.mkdirSync(mediaDir, { recursive: true });
+  const safe = path.basename(src).replace(/[^\w.\- ]+/g, '_').slice(-80);
+  const file = `${Date.now().toString(36)}-${safe}`;
+  await fs.promises.copyFile(src, path.join(mediaDir, file));
+  return { file, kind, name: path.basename(src) };
+}
+// Remove copied files that no button uses any more (replaced or deleted since the last launch).
+function mediaSweep() {
+  if (!fs.existsSync(mediaDir)) return;
+  const used = store.mediaInUse();
+  for (const f of fs.readdirSync(mediaDir)) if (!used.has(f)) fs.rmSync(path.join(mediaDir, f), { force: true });
+}
+
+// ---------------------------------------------------------------- soundboard pop-out
+// A small always-on-top window of buttons. It holds no data and plays nothing itself: it shows the
+// button list the GM window sends and tells the GM window which button was pressed.
+function boardOpen() {
+  if (board) { board.show(); board.focus(); return true; }
+  const saved = store.kvGet('boardWindow');
+  const home = saved && screen.getAllDisplays().find((d) => overlaps(saved, d));
+  const p = screen.getPrimaryDisplay().workArea;
+  const bounds = home ? saved : { width: 380, height: 440, x: p.x + p.width - 420, y: p.y + 80 };
+  board = new BrowserWindow({
+    ...bounds, minWidth: 200, minHeight: 140, title: 'Roll Ready — Soundboard', autoHideMenuBar: true, alwaysOnTop: true, fullscreenable: false,
+    backgroundColor: boardState.theme === 'light' ? '#f6f2e8' : '#15171c',
+    webPreferences: { preload: path.join(__dirname, 'preload-board.js'), contextIsolation: true, nodeIntegration: false },
+  });
+  board.removeMenu();
+  board.loadFile(path.join(__dirname, 'renderer', 'board.html'));
+  board.on('close', () => store.kvSet('boardWindow', board.getBounds()));
+  board.on('closed', () => { board = null; tellGm(); });
+  tellGm();
+  return true;
+}
+
 // ---------------------------------------------------------------- GM window
 function createWindow() {
   const bounds = store.kvGet('windowBounds') || { width: 1440, height: 900 };
@@ -32,7 +88,7 @@ function createWindow() {
   // F12 opens the developer tools, for diagnosing problems.
   win.webContents.on('before-input-event', (_e, input) => { if (input.type === 'keyDown' && input.key === 'F12') win.webContents.toggleDevTools(); });
   win.on('close', () => { if (!win.isMaximized() && !win.isFullScreen()) store.kvSet('windowBounds', win.getBounds()); });
-  win.on('closed', () => { win = null; if (player) player.close(); });
+  win.on('closed', () => { win = null; if (player) player.close(); if (board) board.close(); });
   win.webContents.setWindowOpenHandler(({ url }) => { if (/^https:\/\//.test(url)) shell.openExternal(url); return { action: 'deny' }; });
 }
 
@@ -47,7 +103,7 @@ const centeredOn = (d) => {
 };
 const overlaps = (b, d) => b.x < d.bounds.x + d.bounds.width - 80 && b.x + b.width > d.bounds.x + 80 && b.y < d.bounds.y + d.bounds.height - 80 && b.y + b.height > d.bounds.y;
 
-function tellGm() { if (win) win.webContents.send('player:status', { open: !!player, theme: publicState.theme }); }
+function tellGm() { if (win) win.webContents.send('player:status', { open: !!player, theme: publicState.theme, board: !!board }); }
 
 function playerOpen(displayId) {
   const all = screen.getAllDisplays();
@@ -103,6 +159,13 @@ app.whenReady().then(() => {
   store = new Store(file);
   store.seed(path.join(__dirname, 'data', 'srd.json'));
   publicState.theme = store.kvGet('playerTheme') || 'auto';
+  mediaDir = path.join(path.dirname(file), 'roll-ready-media');
+  mediaSweep();
+  protocol.handle('rrmedia', (req) => {
+    const p = path.join(mediaDir, path.basename(decodeURIComponent(new URL(req.url).pathname)));   // basename: no way out of the folder
+    if (!fs.existsSync(p)) return new Response('Not found', { status: 404 });
+    return net.fetch(pathToFileURL(p).toString(), { headers: req.headers });
+  });
 
   const api = {
     bootstrap: () => store.bootstrap(),
@@ -118,7 +181,15 @@ app.whenReady().then(() => {
     displays: () => listDisplays(),
     playerOpen: (displayId) => playerOpen(displayId),
     playerClose: () => { if (player) player.close(); return true; },
-    playerStatus: () => ({ open: !!player, theme: publicState.theme }),
+    playerStatus: () => ({ open: !!player, theme: publicState.theme, board: !!board }),
+    // A picture or clip the GM chose to show the table (or null to take it down). Like the tracker
+    // state, the player window only ever receives what the GM window sends here.
+    playerMedia: (media) => { if (player) player.webContents.send('player:media', media); return !!player; },
+    // soundboard
+    mediaPick: (want) => mediaPick(want),
+    boardOpen: () => boardOpen(),
+    boardClose: () => { if (board) board.close(); return true; },
+    boardPush: (state) => { boardState = state; if (board) board.webContents.send('board:state', boardState); return true; },
     playerTheme: (theme) => setTheme(theme),
     // The GM window sends an already-sanitized snapshot; it is the only thing the player window ever receives.
     playerPush: (state) => { publicState = { ...state, theme: publicState.theme }; if (player) player.webContents.send('player:state', publicState); return true; },
@@ -132,6 +203,14 @@ app.whenReady().then(() => {
   ipcMain.handle('player:get', () => publicState);
   ipcMain.handle('player:fullscreen', () => { if (player) player.setFullScreen(!player.isFullScreen()); return !!player && player.isFullScreen(); });
   ipcMain.handle('player:theme', (_e, theme) => setTheme(theme));
+  ipcMain.on('player:mediaEnded', (e, token) => { if (player && e.sender === player.webContents && win) win.webContents.send('board:event', { type: 'ended', token }); });
+  // The soundboard window's whole vocabulary: read the button list, press a button, stop everything, ask to edit.
+  ipcMain.handle('board:get', () => boardState);
+  ipcMain.on('board:cmd', (e, cmd) => {
+    if (!board || e.sender !== board.webContents || !win) return;
+    if (cmd && cmd.type === 'edit') { win.show(); win.focus(); }
+    if (cmd && ['fire', 'stop', 'edit'].includes(cmd.type)) win.webContents.send('board:event', { type: cmd.type, id: Number(cmd.id) || null });
+  });
 
   if (process.platform !== 'darwin') Menu.setApplicationMenu(null);
   createWindow();

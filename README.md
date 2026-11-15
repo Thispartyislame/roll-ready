@@ -56,6 +56,7 @@ Set the `ROLLREADY_DB` environment variable to point the app at a different file
 | **Rules & spells** | Search-as-you-type over SRD 5.2: spells, rules glossary, conditions, equipment, magic items and monsters, with your own entries alongside. **Pin** any entry to keep it beside the initiative tracker. Searching for something the SRD leaves out says so and offers to add it as a homebrew monster. |
 | **Monsters** | SRD stat blocks in the 2024 format plus your own. Filter by CR, type and source. Create from scratch, or duplicate one and edit it. |
 | **Generators** | NPC names in five styles, tavern names, shops and stock, rumors, weather and treasure by CR tier. Reroll with `R`, save a result to the campaign, copy it, or add it to the session notes. Every table is editable and you can add your own. |
+| **Soundboard** | A grid of buttons, each loaded with a sound, a picture or video for the player view, or a picture and a sound together. Press a button (or `1`–`9`, `0`) to play, press again to stop, `Esc` stops everything. Each button can have a time limit after which it stops and its picture disappears, plus volume and loop. **Pop out board** (`Ctrl+Shift+B`) opens the buttons in a small window that stays on top and can be moved anywhere. |
 | **Emergency NPC** | `Ctrl+N` from anywhere: a named character with a role, look, voice, want, secret and hook, instantly. Lock the parts you like and reroll the rest; filter by setting, attitude and naming style; save as an NPC tagged `emergency`. |
 | **Command palette** | `Ctrl+K`: jump to anything by name or tag, run an action (next turn, start timer, run an encounter, pop out the player view…), or type a roll. |
 
@@ -73,6 +74,7 @@ Press `?` on any screen for the full list. (⌘ in place of Ctrl on macOS.)
 | `Ctrl+I` / `Ctrl+L` | Initiative tracker / rules lookup |
 | `Ctrl+T` | Start or pause the stopwatch |
 | `Ctrl+Shift+P` | Pop out or close the player view |
+| `Ctrl+Shift+B` | Pop out or close the soundboard |
 | `Space` `→` `N` / `←` `P` | Next / previous turn (tracker) |
 | `↑` `↓` | Select a combatant (tracker) |
 | `D` / `H` | Damage / heal the selected combatant |
@@ -97,6 +99,10 @@ Press `?` on any screen for the full list. (⌘ in place of Ctrl on macOS.)
 - **Deleting doesn't ask first.** The entry goes at once and a message offers Undo for a few
   seconds. Removing a combatant and clearing the tracker work the same way. Only deleting a whole
   campaign asks for confirmation.
+- **Soundboard files are copied into the app**, into a `roll-ready-media` folder next to the data
+  file, so buttons keep working if you move the originals. Back that folder up along with the data
+  file. Sound plays on this computer; pictures and video show on the player view, so pop it out
+  first. Supported: mp3, wav, ogg, m4a, aac, flac, opus; png, jpg, gif, webp; mp4, webm, mov.
 - **Generator content is original** to this app; edit or replace any of it under Generators.
 - **SRD entries are read-only.** Duplicate a monster to change it; add your own spells, items and
   rules with the + buttons on the lookup screen.

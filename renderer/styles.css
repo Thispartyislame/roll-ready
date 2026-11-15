@@ -337,3 +337,22 @@ table.enc td.muted, td.qty input, .qtyin, table.thresholds input { font-family: 
 .chipsel button.on { color: var(--accent); } .mi.hi small, .mi:hover small { color: var(--text); }
 /* A full-width button in the list pane keeps the pane's side margins (width: 100% plus margins overflowed). */
 .listpane > button.block { width: auto; align-self: stretch; }
+
+/* ---- soundboard (the same buttons are used in the pop-out window, board.html) */
+.soundboard { display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; }
+.sbbody { flex: 1; min-height: 0; display: flex; }
+.sbgrid { flex: 1; min-width: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); grid-auto-rows: 96px; gap: 8px; padding: 12px; align-content: start; }
+.sbside { width: 400px; flex: none; overflow-y: auto; border-left: 1px solid var(--line); padding: 14px 16px; }
+.sbbtn { display: flex; flex-direction: column; align-items: stretch; justify-content: space-between; gap: 2px; padding: 8px 10px; text-align: left; white-space: normal; min-width: 0; background: var(--panel2); }
+.sbbtn.blue { background: var(--blue-bg); } .sbbtn.violet { background: var(--violet-bg); } .sbbtn.good { background: var(--good-bg); } .sbbtn.orange { background: var(--orange-bg); } .sbbtn.bad { background: var(--bad-bg); }
+.sbbtn .sbkey { display: flex; align-items: center; gap: 6px; min-height: 18px; font-size: 12px; color: var(--text); } .sbbtn .sbkey i { font-style: normal; } .sbbtn .sbkey small { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; }
+.sbbtn .sbkey kbd { background: var(--bg); color: var(--text); }
+.sbbtn .sblabel { font-weight: 600; font-size: 14px; line-height: 1.25; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.sbbtn .sbstate { min-height: 15px; font: 700 10.5px/1.4 sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+/* Playing: accent border and a label — never colour alone. */
+.sbbtn.playing { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+.sbbtn.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sbbtn.blank .sblabel, .sbbtn.add .sblabel { color: var(--muted); font-weight: 400; } .sbbtn.add { border-style: dashed; background: transparent; justify-content: center; text-align: center; }
+.sbfile { display: flex; align-items: center; gap: 6px; min-width: 0; } .sbname2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .sbfile .muted { flex: 1; }
+.sbpreview { grid-column: 1 / -1; } .sbpreview img { max-width: 100%; max-height: 150px; border: 1px solid var(--line2); border-radius: var(--radius); display: block; }
+.sbedit .check.wide { grid-column: 1 / -1; } .sbedit input[type=range] { padding: 0; accent-color: var(--accent); }

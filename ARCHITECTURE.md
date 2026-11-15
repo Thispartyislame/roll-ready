@@ -48,6 +48,18 @@ renderer/
 
 No new libraries were added in Phase 2.
 
+### Soundboard (schema v3)
+
+`sound_button` rows (label, colour, order, audio file, picture/video file, volume, loop, time
+limit) belong to a campaign. Chosen files are copied into `roll-ready-media/` beside the database
+and served to the windows through a private `rrmedia:` scheme, so no page gets general file access;
+files no button uses are removed at startup. `renderer/js/soundboard.js` owns playback: sound plays
+in the GM window, and a picture or clip is sent to the player window over its own `playerMedia`
+channel (one at a time; the player window reports when a clip ends). The pop-out board
+(`board.html`, `preload-board.js`) is an always-on-top third window that holds no data: it draws the
+button list the GM window pushes and sends back presses. Autoplay without a user gesture is enabled
+so a press in one window can start playback in another.
+
 ## Data flow
 
 - **Read:** `bootstrap()` returns the shared library and settings; `loadCampaign(id)` returns every

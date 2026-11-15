@@ -10,11 +10,12 @@ import { Dice, QuickRoll, toggleDice } from './dice.js';
 import { Timers } from './timers.js';
 import { GeneratorsScreen } from './generators.js';
 import { EmergencyNpc, toggleEmergency } from './npcgen.js';
+import { SoundboardScreen, BoardSync, onBoardEvent, toggleBoard } from './soundboard.js';
 import { Timer, Palette, Shortcuts, SettingsScreen, togglePalette, toggleTimer, toggleShortcuts, newCampaign, hooks } from './tools.js';
 
 const NAV = [
   ['At the table'],
-  ['tracker', 'Initiative', '⚔'], ['lookup', 'Rules & spells', '📖'], ['session', 'Sessions & notes', '✎'], ['generators', 'Generators', '🎲'],
+  ['tracker', 'Initiative', '⚔'], ['lookup', 'Rules & spells', '📖'], ['session', 'Sessions & notes', '✎'], ['generators', 'Generators', '🎲'], ['soundboard', 'Soundboard', '♫'],
   ['Campaign'],
   ['party', 'Party', '♟'], ['npc', 'NPCs', '☺'], ['location', 'Locations', '⌂'], ['faction', 'Factions', '⚑'], ['quest', 'Quests', '❖'], ['encounter', 'Encounters', '☠'],
   ['Library'],
@@ -52,6 +53,7 @@ function App() {
   useHotkey(cmd('j'), async () => { if (!ready) return; if (!activeSession()) await startSession(); focusNote(); });
   useHotkey((e) => cmd('n')(e) && ready, () => toggleEmergency());
   useHotkey((e) => (e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'p' && ready, togglePlayer);
+  useHotkey((e) => (e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.key.toLowerCase() === 'b' && ready, toggleBoard);
   useHotkey((e) => e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName), () => toggleShortcuts());
   // The player view shows whichever campaign is open.
   useEffect(() => { if (S.cid) pushPublic(); }, [S.cid]);
@@ -60,7 +62,7 @@ function App() {
   if (!S.cid) return html`<${Welcome} /><${Toast} />`;
   const r = S.route;
   const act = activeSession();
-  const count = (k) => (k === 'tracker' ? tracker().combatants.length : k === 'party' ? S.c.party_member.length : S.c[k]?.length) || '';
+  const count = (k) => (k === 'tracker' ? tracker().combatants.length : k === 'party' ? S.c.party_member.length : k === 'soundboard' ? S.c.sound_button.length : S.c[k]?.length) || '';
   const screen = r.screen === 'tracker' ? html`<${TrackerScreen} />`
     : r.screen === 'lookup' ? html`<${LookupScreen} />`
     : r.screen === 'session' ? html`<${SessionScreen} />`
@@ -68,6 +70,7 @@ function App() {
     : r.screen === 'settings' ? html`<${SettingsScreen} />`
     : r.screen === 'party' ? html`<${PartyScreen} />`
     : r.screen === 'generators' ? html`<${GeneratorsScreen} />`
+    : r.screen === 'soundboard' ? html`<${SoundboardScreen} />`
     : html`<${EntityScreen} key=${r.screen} type=${r.screen} />`;
 
   return html`<div class="app">
@@ -97,7 +100,7 @@ function App() {
       </header>
       <div class="screen">${screen}</div>
     </main>
-    <${Dice} /><${Palette} /><${EmergencyNpc} /><${Shortcuts} />
+    <${Dice} /><${Palette} /><${EmergencyNpc} /><${Shortcuts} /><${BoardSync} />
     <${Toast} />
   </div>`;
 }
@@ -105,6 +108,7 @@ function App() {
 // Hear when the player window opens, closes or changes theme.
 S.player = { open: false, theme: 'auto' };
 window.dm.onPlayerStatus((status) => { S.player = status; notify(); });
+window.dm.onBoardEvent(onBoardEvent);
 
 render(html`<${App} />`, document.getElementById('root'));
 // If loading ever fails, say so on screen instead of leaving an empty window.

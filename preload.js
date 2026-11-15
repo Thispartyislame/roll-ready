@@ -5,4 +5,6 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('dm', {
   call: (method, ...args) => ipcRenderer.invoke('api', method, args),
   onPlayerStatus: (cb) => ipcRenderer.on('player:status', (_e, status) => cb(status)),
+  // Soundboard: a button pressed in the pop-out, or a clip that finished on the player view.
+  onBoardEvent: (cb) => ipcRenderer.on('board:event', (_e, event) => cb(event)),
 });

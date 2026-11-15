@@ -37,6 +37,7 @@ const ENT = {
   condition: { cols: ['name', 'description', 'leveled', 'sort_order'] },
   party_member: { cols: ['campaign_id', 'name', 'player', 'ac', 'max_hp', 'init_bonus'], scoped: true },
   timer: { cols: ['campaign_id', 'label', 'unit', 'duration', 'remaining', 'running', 'started_at', 'combatant_id', 'combatant_name'], scoped: true },
+  sound_button: { cols: ['campaign_id', 'label', 'color', 'sort_order', 'audio', 'visual', 'visual_kind', 'volume', 'loop', 'duration'], scoped: true },
   gen_table: { cols: ['key', 'name', 'category', 'top', 'save_as', 'builtin', 'entries'], json: ['entries'] },
 };
 
@@ -141,7 +142,7 @@ class Store {
 
   loadCampaign(id) {
     const out = {};
-    for (const type of ['location', 'faction', 'npc', 'quest', 'session', 'encounter', 'party_member', 'timer']) {
+    for (const type of ['location', 'faction', 'npc', 'quest', 'session', 'encounter', 'party_member', 'timer', 'sound_button']) {
       out[type] = this.all(`SELECT * FROM ${type} WHERE campaign_id = ? ORDER BY id`, id);
       this.attachLinks(type, out[type], `SELECT id FROM ${type} WHERE campaign_id = ${Number(id)}`);
     }
@@ -215,7 +216,7 @@ class Store {
   // What an empty form field becomes: NULL for optional numbers/links, 0 or '' for NOT NULL columns.
   emptyFor(type, col) {
     if (/^(location_id|parent_id|monster_id|ac|hp|max_hp|combatant_id)$/.test(col)) return null;
-    if (/^(party_level|party_size|duration|remaining|running|started_at|top|builtin)$/.test(col)) return 0;
+    if (/^(party_level|party_size|duration|remaining|running|started_at|top|builtin|volume|loop)$/.test(col)) return 0;
     if (col === 'init_bonus') return type === 'npc' ? null : 0;
     if (/^(level|leveled|sort_order)$/.test(col)) return 0;
     return '';
@@ -247,6 +248,9 @@ class Store {
       entry.created_at, entry.expression, entry.detail, entry.total, entry.session_id || null, entry.combatant || '');
     return { ...entry, id: Number(r.lastInsertRowid) };
   }
+
+  // Every media file some soundboard button still uses (for sweeping orphans at startup).
+  mediaInUse() { return new Set(this.all('SELECT audio, visual FROM sound_button').flatMap((r) => [r.audio, r.visual]).filter(Boolean)); }
 
   diceClear() { this.run('DELETE FROM dice_log'); return true; }
 }
