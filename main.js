@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, Menu, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu, screen, nativeTheme } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const { Store } = require('./src/db');
@@ -6,7 +6,7 @@ const { Store } = require('./src/db');
 let store;
 let win;            // the GM window
 let player = null;  // the player-facing window (optional, local only)
-let publicState = { round: 1, combatants: [], theme: 'dark' };   // last sanitized tracker state from the GM window
+let publicState = { round: 1, combatants: [], theme: 'auto' };   // last sanitized tracker state from the GM window
 
 // ---------------------------------------------------------------- data file
 // Phase 1 shipped as "DM Helper"; carry that data over on first launch under the new name.
@@ -25,7 +25,7 @@ function dataFile() {
 function createWindow() {
   const bounds = store.kvGet('windowBounds') || { width: 1440, height: 900 };
   win = new BrowserWindow({
-    ...bounds, minWidth: 1000, minHeight: 640, backgroundColor: '#15171c', title: 'Roll Ready', autoHideMenuBar: true,
+    ...bounds, minWidth: 1000, minHeight: 640, backgroundColor: nativeTheme.shouldUseDarkColors ? '#15171c' : '#f6f2e8', title: 'Roll Ready', autoHideMenuBar: true,
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false },
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
@@ -68,7 +68,7 @@ function playerOpen(displayId) {
   }
   player = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320, title: 'Roll Ready — Player View', autoHideMenuBar: true,
-    backgroundColor: publicState.theme === 'light' ? '#f4f1ea' : '#0e0f13',
+    backgroundColor: (publicState.theme === 'auto' ? !nativeTheme.shouldUseDarkColors : publicState.theme === 'light') ? '#f6f2e8' : '#15171c',
     webPreferences: { preload: path.join(__dirname, 'preload-player.js'), contextIsolation: true, nodeIntegration: false },
   });
   player.removeMenu();
@@ -89,7 +89,8 @@ function playerOpen(displayId) {
 }
 
 function setTheme(theme) {
-  publicState = { ...publicState, theme: theme === 'light' ? 'light' : 'dark' };
+  // 'auto' follows the system setting; the player window resolves it.
+  publicState = { ...publicState, theme: ['light', 'dark'].includes(theme) ? theme : 'auto' };
   store.kvSet('playerTheme', publicState.theme);
   if (player) player.webContents.send('player:state', publicState);
   tellGm();
@@ -101,7 +102,7 @@ app.whenReady().then(() => {
   const file = dataFile();
   store = new Store(file);
   store.seed(path.join(__dirname, 'data', 'srd.json'));
-  publicState.theme = store.kvGet('playerTheme') || 'dark';
+  publicState.theme = store.kvGet('playerTheme') || 'auto';
 
   const api = {
     bootstrap: () => store.bootstrap(),

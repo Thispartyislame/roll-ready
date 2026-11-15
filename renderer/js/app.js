@@ -1,4 +1,4 @@
-import { html, render, useRef, useEffect, useStore, S, boot, go, lastOn, openCampaign, label, notify, call } from './lib.js';
+import { html, render, useRef, useEffect, useStore, S, boot, go, lastOn, openCampaign, label, notify, call, clearToast, saveState, themeChoice, setTheme } from './lib.js';
 import { useHotkey } from './components.js';
 import { EntityScreen, PartyScreen } from './world.js';
 import { SessionScreen, NoteInput, activeSession, startSession } from './sessions.js';
@@ -26,6 +26,13 @@ function Welcome() {
     <input placeholder="Campaign name, then Enter" onKeyDown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) newCampaign(e.target.value.trim()); }} ref=${(el) => el && el.focus()} /></div>`;
 }
 
+// Bottom-of-window message. With `undo`, it carries the way back instead of a confirmation up front.
+const Toast = () => (S.toast ? html`<div class="toast" role="status"><span>${S.toast.msg}</span>
+  ${S.toast.undo ? html`<button onClick=${() => { const u = S.toast.undo; clearToast(); u(); }}>Undo</button>` : ''}</div>` : '');
+const SAVE = { saving: 'Saving…', saved: '✓ All changes saved', failed: '⚠ Last change wasn\'t saved' };
+const THEMES = { auto: ['◐', 'Theme: system'], dark: ['☾', 'Theme: dark'], light: ['☀', 'Theme: light'] };
+const nextTheme = () => setTheme({ auto: 'dark', dark: 'light', light: 'auto' }[themeChoice()] || 'auto');
+
 const togglePlayer = () => (S.player?.open ? call('playerClose') : popOutPlayer());
 
 function App() {
@@ -50,7 +57,7 @@ function App() {
   useEffect(() => { if (S.cid) pushPublic(); }, [S.cid]);
 
   if (!S.ready) return html`<div class="welcome"></div>`;
-  if (!S.cid) return html`<${Welcome} />${S.toast ? html`<div class="toast">${S.toast}</div>` : ''}`;
+  if (!S.cid) return html`<${Welcome} /><${Toast} />`;
   const r = S.route;
   const act = activeSession();
   const count = (k) => (k === 'tracker' ? tracker().combatants.length : k === 'party' ? S.c.party_member.length : S.c[k]?.length) || '';
@@ -71,7 +78,11 @@ function App() {
       ${NAV.map(([k, l, icon]) => (l ? html`<a class=${r.screen === k ? 'on' : ''} onClick=${() => go(k, k === r.screen ? r.id : lastOn(k) ?? (k === 'session' ? act?.id ?? null : null))}>
         <i>${icon}</i><span>${l}</span><em>${count(k)}</em></a>` : html`<h5>${k}</h5>`))}
       <span class="spacer"></span>
-      <a class="navhelp" onClick=${() => toggleShortcuts(true)}><i>?</i><span>Shortcuts</span></a>
+      <div class="navfoot">
+        <a class="navhelp" onClick=${nextTheme} title="Switch between following the system, dark and light"><i>${THEMES[themeChoice()][0]}</i><span>${THEMES[themeChoice()][1]}</span></a>
+        <a class="navhelp" onClick=${() => toggleShortcuts(true)}><i>?</i><span>Shortcuts</span></a>
+        <div class="savestate ${saveState()}" title="Everything saves by itself as you type">${SAVE[saveState()]}</div>
+      </div>
     </nav>
     <main>
       <header>
@@ -87,12 +98,12 @@ function App() {
       <div class="screen">${screen}</div>
     </main>
     <${Dice} /><${Palette} /><${EmergencyNpc} /><${Shortcuts} />
-    ${S.toast ? html`<div class="toast">${S.toast}</div>` : ''}
+    <${Toast} />
   </div>`;
 }
 
 // Hear when the player window opens, closes or changes theme.
-S.player = { open: false, theme: 'dark' };
+S.player = { open: false, theme: 'auto' };
 window.dm.onPlayerStatus((status) => { S.player = status; notify(); });
 
 render(html`<${App} />`, document.getElementById('root'));

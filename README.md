@@ -92,6 +92,11 @@ Press `?` on any screen for the full list. (⌘ in place of Ctrl on macOS.)
 - **The player view is a window on this computer**, not a web page: drag it to a second monitor or
   share that window in your video call. It does not reach players' own devices.
 - **Expired timers are flagged, not removed** — click an expired chip to clear it.
+- **Light and dark themes.** The app follows your system setting until you choose: use the theme
+  switch at the bottom of the sidebar or Settings → Appearance. The player view has its own.
+- **Deleting doesn't ask first.** The entry goes at once and a message offers Undo for a few
+  seconds. Removing a combatant and clearing the tracker work the same way. Only deleting a whole
+  campaign asks for confirmation.
 - **Generator content is original** to this app; edit or replace any of it under Generators.
 - **SRD entries are read-only.** Duplicate a monster to change it; add your own spells, items and
   rules with the + buttons on the lookup screen.

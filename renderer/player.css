@@ -1,35 +1,49 @@
-/* Player view: large, high-contrast, readable from across a table. */
-:root { --n: 6; }
+/* Player view: read from across a table by people who don't control it. Large, high-contrast, calm.
+   Same token names as the GM window (see DESIGN.md); js/player.js sets data-theme. */
+:root {
+  --bg: #15171c; --panel: #1c1f26; --line: #3d4356; --control: #6a7186; --text: #e6e2d8; --muted: #a3a9b6;
+  --accent: #d9a441; --blue: #6ea3d8; --good: #5fae6b; --warn: #d9a441; --bad: #e2685a; --orange: #e8823a;
+  --sans: "Segoe UI", -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; --mono: ui-monospace, Consolas, monospace;
+  --accent-bg: color-mix(in srgb, var(--accent) 20%, var(--bg)); --orange-bg: color-mix(in srgb, var(--orange) 22%, var(--bg)); --orange-fg: color-mix(in srgb, var(--orange) 40%, var(--text));
+  --n: 6; color-scheme: dark;
+}
+:root[data-theme="light"] {
+  --bg: #f6f2e8; --panel: #fbf8f1; --line: #c4baa2; --control: #8c836e; --text: #1d1b16; --muted: #5e5a4f;
+  --accent: #734b00; --blue: #1f5a96; --good: #256b31; --warn: #734b00; --bad: #a82a1f; --orange: #9a4a08; color-scheme: light;
+}
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { font-family: Georgia, "Iowan Old Style", serif; display: flex; flex-direction: column; overflow: hidden; user-select: none;
-  /* Text scales with the window, and shrinks when the list is long so everyone fits on screen. */
-  font-size: clamp(16px, min(3.4vw, calc(74vh / (var(--n) * 2.1))), 64px); }
-body.dark { --bg: #0e0f13; --row: #1a1c23; --line: #2c303c; --text: #f4f0e6; --muted: #9aa0ad; --accent: #f0b84a; --accent-bg: #3a2c0c; --pc: #7fb4ea; --cond-bg: #5a3a1e; --cond: #ffd9a8; --good: #7fd08a; --warn: #f0b84a; --bad: #ff7a66; }
-body.light { --bg: #f4f1ea; --row: #ffffff; --line: #d5cfc0; --text: #15171c; --muted: #5d6370; --accent: #9a5b00; --accent-bg: #ffe9b8; --pc: #1f5fa3; --cond-bg: #f3d9b8; --cond: #5a3306; --good: #1f7a33; --warn: #9a5b00; --bad: #b3261a; }
-body { background: var(--bg); color: var(--text); }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); display: flex; flex-direction: column; overflow: hidden; user-select: none;
+  /* Names scale with the window and shrink when the list is long, but never below 32px on a 1080p display
+     (2.97vh). A longer list scrolls to keep the active turn in view instead of getting smaller. */
+  font-size: clamp(max(16px, 2.97vh), min(3.2vw, calc(76vh / (var(--n) * 2.05))), 6vh); }
 body.idle { cursor: none; }
 
-header { display: flex; align-items: center; justify-content: space-between; padding: .35em .7em .1em; min-height: 1.9em; }
-.round { font-size: 1.15em; font-weight: 700; color: var(--accent); letter-spacing: .02em; }
+header { display: flex; align-items: center; justify-content: space-between; padding: .3em .7em .1em; }
+.round { font-size: max(1.2em, 4.45vh); font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; min-height: 1.3em; }
 .controls { display: flex; gap: 8px; transition: opacity .4s; }
 body.idle .controls { opacity: 0; pointer-events: none; }
-.controls button { font: 600 14px "Segoe UI", -apple-system, sans-serif; color: var(--text); background: var(--row); border: 1px solid var(--line); border-radius: 5px; padding: 6px 12px; cursor: pointer; }
+.controls button { font: 600 14px var(--sans); color: var(--text); background: var(--panel); border: 1px solid var(--control); border-radius: 5px; padding: 6px 12px; cursor: pointer; }
 .controls button:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-main { flex: 1; min-height: 0; overflow-y: auto; padding: .2em .7em .6em; display: flex; flex-direction: column; gap: .22em; }
+main { flex: 1; min-height: 0; overflow-y: auto; padding: .2em .7em .6em; display: flex; flex-direction: column; gap: .2em; }
 main::-webkit-scrollbar { width: 0; }
-.row { display: flex; align-items: center; gap: .7em; padding: .28em .7em; background: var(--row); border: 2px solid var(--line); border-left: .3em solid var(--line); border-radius: .25em; }
-.row.pc { border-left-color: var(--pc); }
-.row.active { background: var(--accent-bg); border-color: var(--accent); box-shadow: 0 0 0 .08em var(--accent); }
-.row.active .name::before { content: "▶ "; color: var(--accent); }
-.row.down { opacity: .45; } .row.down .name { text-decoration: line-through; }
-.init { font-size: .8em; font-weight: 700; color: var(--muted); min-width: 1.7em; text-align: center; }
+.row { display: flex; align-items: center; gap: .7em; padding: .24em .7em; background: var(--panel); border: 2px solid var(--line); border-radius: .22em; flex: none; }
+.row.pc .init { color: var(--blue); }
+/* The active turn: accent border and fill, a ▶ marker, and heavier type — never colour alone. */
+.row.active { background: var(--accent-bg); border-color: var(--accent); }
+.row.active .name { font-weight: 800; } .row.active .name::before { content: "▶ "; color: var(--accent); }
+.row.active.justnow { animation: arrive .7s cubic-bezier(.16, 1, .3, 1); }
+@keyframes arrive { from { background: color-mix(in srgb, var(--accent) 45%, var(--bg)); } }
+.row.down { opacity: .5; } .row.down .name { text-decoration: line-through; }
+.init { font: 700 .8em var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 1.8em; text-align: center; }
 .who { flex: 1; min-width: 0; }
-.name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
-.conds { display: flex; flex-wrap: wrap; gap: .3em; margin-top: .1em; }
-.cond { font: 600 .5em "Segoe UI", -apple-system, sans-serif; background: var(--cond-bg); color: var(--cond); border-radius: 1em; padding: .15em .7em; }
-.health { font: 700 .55em "Segoe UI", -apple-system, sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
+.name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+.conds { display: flex; flex-wrap: wrap; gap: .3em; margin-top: .12em; }
+.cond { font-size: max(.5em, 16px); font-weight: 600; background: var(--orange-bg); color: var(--orange-fg); border-radius: 1em; padding: .15em .7em; }
+.health { font-size: max(.55em, 16px); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }
 .health.healthy { color: var(--good); } .health.bloodied { color: var(--warn); } .health.near-death { color: var(--bad); } .health.down { color: var(--muted); }
 
-.waiting { margin: auto; text-align: center; } .wtitle { font-size: 1.6em; font-weight: 700; color: var(--accent); } .wsub { color: var(--muted); font-size: .8em; margin-top: .3em; }
+.waiting { margin: auto; text-align: center; } .wtitle { font: 600 1.6em Georgia, "Iowan Old Style", serif; } .wsub { color: var(--muted); font-size: .8em; margin-top: .3em; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

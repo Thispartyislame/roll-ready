@@ -1,5 +1,5 @@
 // Always-available tools: stopwatch, command palette, shortcut reference, and the settings screen.
-import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS } from './lib.js';
+import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS, themeChoice, setTheme } from './lib.js';
 import { Bound, Field } from './components.js';
 import { roll, isDice, toggleDice } from './dice.js';
 import { toggleTimers } from './timers.js';
@@ -48,6 +48,7 @@ function actions() {
     { name: 'Pop out player view', hint: 'Ctrl+Shift+P', words: 'second monitor screen window display', run: () => popOutPlayer() },
     ...(S.player?.open ? [{ name: 'Close player view', hint: '', words: 'window', run: () => call('playerClose') }] : []),
     { name: 'Start a new session', hint: '', words: 'begin', run: startSession },
+    { name: 'Switch theme: ' + (window.rrTheme.resolved() === 'light' ? 'dark' : 'light'), hint: '', words: 'appearance mode night day', run: () => setTheme(window.rrTheme.resolved() === 'light' ? 'dark' : 'light') },
     { name: 'Keyboard shortcuts', hint: '?', words: 'help keys reference', run: () => toggleShortcuts(true) },
     ...[['tracker', 'Initiative tracker'], ['lookup', 'Rules & spells'], ['party', 'Party'], ['generators', 'Generators'], ['monster', 'Monsters'], ['settings', 'Settings & about']]
       .map(([k, l]) => ({ name: 'Go to ' + l, hint: '', words: '', run: () => go(k) })),
@@ -195,6 +196,10 @@ export function SettingsScreen() {
         <input placeholder="+ New campaign — type a name, press Enter" onKeyDown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { newCampaign(e.target.value.trim()); e.target.value = ''; } }} />
         <button class="danger ghost" onClick=${() => del('campaign', c)}>Delete this campaign…</button>
       </div>` : ''}
+    </section>
+    <section><h2>Appearance</h2>
+      <div class="seg">${[['auto', 'Follow system'], ['dark', 'Dark'], ['light', 'Light']].map(([k, l]) => html`<button class=${themeChoice() === k ? 'on' : ''} onClick=${() => setTheme(k)}>${l}</button>`)}</div>
+      <p class="muted">The player view has its own theme: set it from Player view in the initiative tracker, or in the player window itself.</p>
     </section>
     <section><h2>Conditions <small>shown in the initiative tracker — edit freely if your table runs different rules</small></h2>
       <div class="conds">

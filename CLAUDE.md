@@ -47,6 +47,11 @@ the visual rules). Where they conflict with this file, this file wins.
   open, so any new modal should use it too.
 - Focus for anything typed into immediately after a hotkey goes in a layout effect (see `Palette`).
 - Only `publicState()` may decide what the player window sees.
+- No `confirm()` for undoable actions: `del()` hides the entry and shows a toast with Undo (the row
+  is removed from the file when the toast goes, on window blur, or on a campaign switch);
+  `withUndo()` in `combat.js` does the same for tracker changes. Only deleting a campaign asks.
+- Colours are tokens only (`renderer/styles.css`, `renderer/player.css`), defined for dark and
+  `:root[data-theme="light"]`. `js/theme.js` sets `data-theme` before the app loads.
 
 ## Still to do
 

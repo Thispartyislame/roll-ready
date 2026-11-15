@@ -31,15 +31,23 @@ No D&D or Wizards branding, iconography or trade dress.
 | `--line` / `--line2` | `#313645` / `#3d4356` | dividers, control borders |
 | `--text` | `#e6e2d8` | primary text (13.9:1 on bg) |
 | `--muted` | `#8f95a3` | secondary text (6.0:1 on bg, 5.0:1 on panel2) |
-| `--accent` | `#d9a441` | the one accent: primary buttons, focus, active turn |
+| `--strong` / `--soft` | `#cfc8b8` / `#b9bfcc` | sub-headings; chip and log text |
+| `--placeholder` | `#8b91a0` | placeholder text (≥ 4.5:1 on `--input`) |
+| `--control` | `#6a7186` | borders of inputs and buttons (≥ 3:1 on every surface) |
+| `--input` / `--sunken` / `--hair` / `--chip` | `#12141a` / `#181a20` / `#23262f` / `#2a2f3c` | field fill, recessed areas, row dividers, neutral chips |
+| `--accent` / `--on-accent` | `#d9a441` / `#1a1408` | the one accent: primary buttons, focus, active turn; text on it |
 | `--accent2` | `#b3452f` | rust: decorative only, not for text (3.25:1) |
-| `--good` / `--warn` / `--bad` | `#5fae6b` / `#d9a441` / `#cf4c3c` | status |
-| `--blue` / `--violet` | `#6ea3d8` / `#a98bd6` | secondary categorisation (conditions, tags) |
+| `--good` / `--warn` / `--bad` / `--orange` | `#5fae6b` / `#d9a441` / `#e2685a` / `#e8823a` | status |
+| `--blue` / `--violet` / `--info` | `#6ea3d8` / `#a98bd6` / `#9aa0f0` | secondary categorisation (conditions, tags, concentration) |
+
+Tinted chips and banners are derived, not hand-picked: `--x-bg` is 20% of the colour mixed into
+`--bg`, `--x-fg` is 45% mixed into `--text` (`--accent-bg`, `--accent-bg2`, `--good-bg`/`-fg`, and so
+on). Light values for every token are in `:root[data-theme="light"]` in the same file.
 
 Rules:
 
-- Never hard-code a colour in a component; add or reuse a token. (The existing stylesheet has some
-  literal hex values to clean up over time.)
+- Never hard-code a colour in a component; add or reuse a token. (Both stylesheets now contain no
+  colour literals outside the token blocks.)
 - Gold means "this is the active or primary thing". Don't use it for decoration.
 - Status is never conveyed by colour alone. Pair it with a label, an icon or a position (for
   example, coarse health in the player view is a word like "Bloodied", not just a red bar).
@@ -48,14 +56,18 @@ Rules:
 
 - Implement as the same token names redefined under `:root[data-theme="light"]`, and follow
   `prefers-color-scheme` when the user hasn't chosen. GM window and player view each have a toggle.
+  (Built: `js/theme.js` for the GM window, with the toggle at the bottom of the sidebar and in
+  Settings → Appearance; the player view's is in its own window and in the tracker's Player view menu.)
 - Direction: warm off-white paper (~`#f6f2e8`) background, near-black ink text, a darker gold accent
   that still passes AA as text on paper. Verify every token pair; don't just invert.
 
 ## Accessibility: WCAG 2.2 AA
 
 - Text ≥ 4.5:1, large text and UI component boundaries ≥ 3:1, in both themes.
-- Known gaps to fix: placeholder `#5d6370` on input bg is 3.05:1 (raise to ≥ 4.5:1); `--bad`
-  `#cf4c3c` on bg is 4.06:1 (lighten slightly for text use); `--accent2` is not a text colour.
+- Fixed gaps, for the record: placeholder was 3.05:1 (now `--placeholder`); `--bad` was 4.06:1 on bg
+  (lightened to `#e2685a`); `--accent2` is no longer used as a text colour.
+- When adding a colour pair, check it in both themes. Easy ones to miss: muted text on a tinted or
+  highlighted row.
 - Visible focus ring on every interactive element (2px `--accent` outline with offset); never
   `outline: none` without a replacement.
 - Everything in the tracker works by keyboard; shortcuts are shown with `<kbd>` and listed in the

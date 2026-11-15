@@ -4,15 +4,18 @@
   const list = document.getElementById('list');
   const round = document.getElementById('round');
   const themeBtn = document.getElementById('theme');
-  let theme = 'dark';
+  const system = window.matchMedia('(prefers-color-scheme: light)');
+  let theme = 'dark'; let choice = 'auto'; let last = null;
   let lastActive = null;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
   function draw(state) {
-    theme = state.theme === 'light' ? 'light' : 'dark';
-    document.body.classList.toggle('light', theme === 'light');
-    document.body.classList.toggle('dark', theme !== 'light');
+    // 'auto' (nobody has chosen yet) follows the system setting.
+    choice = state.theme;
+    theme = ['light', 'dark'].includes(choice) ? choice : (system.matches ? 'light' : 'dark');
+    document.documentElement.dataset.theme = theme;
     themeBtn.textContent = theme === 'light' ? '☾ Dark' : '☀ Light';
     const all = state.combatants || [];
     list.textContent = '';
@@ -37,12 +40,14 @@
       list.append(row);
     }
     const key = activeRow ? activeRow.querySelector('.name').textContent + '|' + state.round : null;
-    if (activeRow && key !== lastActive) activeRow.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (activeRow && key !== lastActive) { activeRow.classList.add('justnow'); activeRow.scrollIntoView({ block: 'nearest', behavior: reduced.matches ? 'auto' : 'smooth' }); }
     lastActive = key;
   }
 
-  window.table.get().then(draw);
-  window.table.onState(draw);
+  const redraw = (state) => { last = state; draw(state); };
+  window.table.get().then(redraw);
+  window.table.onState(redraw);
+  system.addEventListener('change', () => { if (last) draw(last); });
   themeBtn.addEventListener('click', () => window.table.setTheme(theme === 'light' ? 'dark' : 'light'));
   document.getElementById('full').addEventListener('click', () => window.table.toggleFullscreen());
 

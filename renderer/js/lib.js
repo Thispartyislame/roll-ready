@@ -39,10 +39,18 @@ export function useStore() {
   return S;
 }
 
-export function toast(msg) {
-  S.toast = msg; notify();
-  clearTimeout(toast.t); toast.t = setTimeout(() => { S.toast = null; notify(); }, 3500);
+// A short message at the bottom of the window. Pass `undo` to offer a way back instead of asking first.
+export function toast(msg, { undo, ms } = {}) {
+  S.toast = { msg, undo }; notify();
+  clearTimeout(toast.t); toast.t = setTimeout(clearToast, ms || (undo ? 7000 : 3500));
 }
+export function clearToast() { clearTimeout(toast.t); S.toast = null; notify(); }
+
+// ---------------------------------------------------------------- theme
+// 'auto' follows the system setting. Kept in kv with the rest of the settings, and mirrored by
+// js/theme.js so the right theme is on screen before the data loads.
+export const themeChoice = () => window.rrTheme.get();
+export function setTheme(choice) { window.rrTheme.set(choice); setKv('theme', choice); notify(); }
 
 export async function call(method, ...args) {
   try { return await window.dm.call(method, ...args); }
@@ -75,6 +83,7 @@ export async function boot() {
   const c = S.campaigns.find((x) => x.id === want) || S.campaigns[0];
   if (c) await openCampaign(c.id);
   if (S.kv.lastRoute && c) S.route = S.kv.lastRoute;
+  if (S.kv.theme && S.kv.theme !== window.rrTheme.get()) window.rrTheme.set(S.kv.theme);
   S.ready = true; notify();
 }
 
@@ -125,20 +134,54 @@ export function edit(type, obj, patch) {
   notify();
   const key = type + ':' + obj.id;
   clearTimeout(pending.get(key)?.t);
-  const run = () => { pending.delete(key); return call('save', type, strip(obj)); };
+  const run = () => {
+    pending.delete(key); writing++;
+    return call('save', type, strip(obj)).then((r) => { saveFailed = false; return r; }, (e) => { saveFailed = true; throw e; }).finally(() => { writing--; notify(); });
+  };
   pending.set(key, { t: setTimeout(run, 300), run });
 }
+// Autosave status for the corner of the window: quiet, but always there to check.
+let writing = 0; let saveFailed = false;
+export const saveState = () => (pending.size || writing ? 'saving' : saveFailed ? 'failed' : 'saved');
+
 export async function flushSaves() {
   const all = [...pending.values()];
   all.forEach((p) => clearTimeout(p.t));
   await Promise.all(all.map((p) => p.run().catch(() => {})));
+  await commitDeletes();
 }
 window.addEventListener('beforeunload', () => { flushSaves(); });
 window.addEventListener('blur', () => { flushSaves(); });
 
+// Deleting never asks first. The entry disappears at once and a toast offers Undo; the row is only
+// removed from the file when the toast goes (or the window loses focus, or the campaign changes).
+// `ask: false` is for small things removed with their own × (timers, notes): gone at once, no toast.
+// A whole campaign is the one thing that still asks, because there is no way back from it.
+const doomed = new Map();
+async function commitDeletes() {
+  const all = [...doomed.values()]; if (!all.length) return;
+  doomed.clear(); all.forEach((d) => clearTimeout(d.t));
+  if (all.some((d) => d.obj === S.toast?.subject)) clearToast();
+  for (const d of all) await call('remove', d.type, d.obj.id).catch(() => {});
+  if (S.cid) { S.c = await call('loadCampaign', S.cid); notify(); }     // picks up cascaded link removals
+}
 export async function del(type, obj, { ask = true } = {}) {
-  if (ask && !confirm(`Delete "${label(obj)}"? This can't be undone.`)) return false;
   clearTimeout(pending.get(type + ':' + obj.id)?.t); pending.delete(type + ':' + obj.id);
+  if (ask && type !== 'campaign') {
+    const list = listOf(type); const at = list.indexOf(obj);
+    if (at < 0) return false;
+    list.splice(at, 1);
+    const key = type + ':' + obj.id;
+    doomed.set(key, { type, obj, t: setTimeout(commitDeletes, 7000) });
+    toast(`Deleted “${label(obj)}”.`, { undo: () => {
+      const d = doomed.get(key); if (!d) return;
+      clearTimeout(d.t); doomed.delete(key);
+      const now = listOf(type); now.splice(Math.min(at, now.length), 0, obj); notify();
+    } });
+    S.toast.subject = obj;
+    return true;
+  }
+  if (type === 'campaign' && ask && !confirm(`Delete the campaign “${label(obj)}” and everything in it? This can't be undone.`)) return false;
   await call('remove', type, obj.id);
   if (type === 'campaign') {
     S.campaigns = S.campaigns.filter((x) => x.id !== obj.id);

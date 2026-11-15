@@ -40,10 +40,10 @@ export function tickRounds(delta) {
 }
 
 // A removed combatant takes its attached effects with it — and says so.
-export async function dropTimersFor(combatantId) {
+export async function dropTimersFor(combatantId, quiet) {
   const mine = S.c.timer.filter((t) => t.combatant_id === combatantId);
   for (const t of mine) await del('timer', t, { ask: false });
-  if (mine.length) toast(`Removed ${mine.length === 1 ? 'timer “' + mine[0].label + '”' : mine.length + ' timers'} attached to that combatant.`);
+  if (mine.length && !quiet) toast(`Removed ${mine.length === 1 ? 'timer “' + mine[0].label + '”' : mine.length + ' timers'} attached to that combatant.`);
 }
 export const timersFor = (combatantId) => S.c.timer.filter((t) => t.combatant_id === combatantId);
 

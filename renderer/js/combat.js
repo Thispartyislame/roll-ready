@@ -142,6 +142,19 @@ export function step(dir = 1) {
   touch();
 }
 
+// Run a change to the tracker and offer Undo instead of asking first. Undo puts the tracker back exactly
+// as it was, including any timers that were attached to combatants the change removed.
+export function withUndo(msg, change) {
+  const key = 'tracker:' + S.cid;
+  const before = JSON.stringify(tracker());
+  const timers = S.c.timer.filter((x) => x.combatant_id != null).map(({ id, ...rest }) => ({ ...rest }));
+  change();
+  toast(msg, { undo: async () => {
+    S.kv[key] = JSON.parse(before); touch();
+    for (const x of timers) if (!S.c.timer.some((y) => y.combatant_id === x.combatant_id && y.label === x.label)) await create('timer', x);
+  } });
+}
+
 // Removing whoever's turn it is hands the turn to whoever was next.
 export function removeCombatant(id) {
   const t = tracker();
@@ -153,7 +166,7 @@ export function removeCombatant(id) {
   if (!t.combatants.length) { t.turn = null; t.round = 1; }
   if (t.concPrompt?.id === id) t.concPrompt = null;
   touch();
-  dropTimersFor(id);
+  dropTimersFor(id, true);
 }
 
 export function rollAll() {
@@ -169,7 +182,7 @@ export function rollAll() {
 
 export function resetCombat(keepParty) {
   const t = tracker();
-  for (const c of t.combatants) if (!(keepParty && c.kind === 'pc')) dropTimersFor(c.id);
+  for (const c of t.combatants) if (!(keepParty && c.kind === 'pc')) dropTimersFor(c.id, true);
   t.combatants = keepParty ? t.combatants.filter((c) => c.kind === 'pc') : [];
   t.combatants.forEach((c) => { c.init = null; c.conc = false; c.cond = {}; });
   t.round = 1; t.turn = null; t.concPrompt = null;

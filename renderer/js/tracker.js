@@ -1,7 +1,7 @@
 // Initiative tracker — the screen that's open during combat. Everything is one click or one keystroke.
 import { html, useState, useRef, useEffect, S, byId, label, toast, num, call, notify, pins, togglePin, sign, mod, go } from './lib.js';
 import { Picker, Empty, useHotkey } from './components.js';
-import { tracker, touch, order, isDown, step, removeCombatant, rollAll, resetCombat, damage, addMonster, addNpc, addAdhoc, addEncounter, addParty, saveOutcome, pushPublic } from './combat.js';
+import { tracker, touch, order, isDown, step, removeCombatant, withUndo, rollAll, resetCombat, damage, addMonster, addNpc, addAdhoc, addEncounter, addParty, saveOutcome, pushPublic } from './combat.js';
 import { StatBlock } from './monsters.js';
 import { EntryView } from './lookup.js';
 import { roll, LastRoll } from './dice.js';
@@ -51,7 +51,7 @@ function Row({ c, active, selected, onSelect, menuOpen, setMenu, heal, endHeal }
       <input class="cname" value=${c.name} onClick=${(e) => e.stopPropagation()} onInput=${(e) => { c.name = e.target.value; touch(); }} />
       <div class="chips">
         ${c.kind === 'pc' ? html`<span class="chip pc">PC</span>` : ''}
-        ${c.hidden ? html`<span class="chip hid" title="Not shown in the player view">Hidden</span>` : ''}
+        ${c.hidden ? html`<span class="chip hid" title="Only you can see this combatant. It is left out of the player view.">Hidden from players</span>` : ''}
         ${down ? html`<span class="chip dead">0 HP</span>` : c.maxHp && c.hp <= c.maxHp / 2 ? html`<span class="chip blood">Bloodied</span>` : ''}
         ${c.conc ? html`<span class="chip conc" title="Concentrating — click to end" onClick=${(e) => { e.stopPropagation(); c.conc = false; touch(); }}>Concentrating</span>` : ''}
         ${Object.entries(c.cond).map(([k, v]) => html`<span class="chip cond" title="${descOf(k)}\n\nClick to remove"
@@ -79,7 +79,7 @@ function Row({ c, active, selected, onSelect, menuOpen, setMenu, heal, endHeal }
       <button class="tog ${c.conc ? 'on' : ''}" title="Concentration" onClick=${() => { c.conc = !c.conc; touch(); }}>C</button>
       <button class="tog ${c.hidden ? 'on' : ''}" title=${c.hidden ? 'Hidden from the player view — click to show' : 'Visible in the player view — click to hide'} onClick=${() => { c.hidden = !c.hidden; touch(); }}>${c.hidden ? '🚫' : '👁'}</button>
       <span class="condwrap"><button title="Conditions, saves and visibility (C)" onClick=${() => setMenu(menuOpen ? null : c.id)}>☰</button>${menuOpen ? html`<${RowMenu} c=${c} close=${() => setMenu(null)} />` : ''}</span>
-      <button class="x" title="Remove from combat" onClick=${() => removeCombatant(c.id)}>×</button>
+      <button class="x" title="Remove from combat" onClick=${() => withUndo(`Removed ${c.name} from combat.`, () => removeCombatant(c.id))}>×</button>
     </div>
   </div>`;
 }
@@ -102,7 +102,7 @@ function PlayerMenu() {
   const [open, setOpen] = useState(false);
   const [displays, setDisplays] = useState([]);
   const t = tracker();
-  const p = S.player || { open: false, theme: 'dark' };
+  const p = S.player || { open: false, theme: 'auto' };
   useEffect(() => { if (open) call('displays').then(setDisplays); }, [open]);
   return html`<span class="condwrap">
     <button class=${p.open ? 'on' : ''} onClick=${() => setOpen(!open)} title="Player-facing window for a second monitor, projector or shared screen">🖥 Player view</button>
@@ -114,7 +114,7 @@ function PlayerMenu() {
       <label class="check"><input type="checkbox" checked=${t.showHealth} onChange=${(e) => { t.showHealth = e.target.checked; touch(); }} /> Health as Healthy / Bloodied / Near death</label>
       <div class="muted small">Never shown: HP numbers, stat blocks, your notes, or anyone marked Hidden.</div>
       <div class="cmhead">Theme</div>
-      <div class="seg">${[['dark', 'Dark'], ['light', 'Light']].map(([k, l]) => html`<button class=${p.theme === k ? 'on' : ''} onClick=${() => call('playerTheme', k)}>${l}</button>`)}</div>
+      <div class="seg">${[['auto', 'System'], ['dark', 'Dark'], ['light', 'Light']].map(([k, l]) => html`<button class=${p.theme === k ? 'on' : ''} onClick=${() => call('playerTheme', k)}>${l}</button>`)}</div>
     </div>` : ''}
   </span>`;
 }
@@ -200,7 +200,7 @@ export function TrackerScreen() {
         <button onClick=${() => addParty()} title="Load this campaign's saved party">+ Party</button>
         <${PlayerMenu} />
         <button onClick=${() => setEnding(true)} disabled=${!list.length} title="Save the outcome to the session log and clear the monsters">End combat…</button>
-        <button class="danger ghost" onClick=${() => { if (confirm('Remove everyone from the tracker?')) { resetCombat(false); setSel(null); } }} title="Remove everyone from the tracker">Clear</button>
+        <button class="danger ghost" onClick=${() => { withUndo('Cleared the tracker.', () => resetCombat(false)); setSel(null); }} disabled=${!list.length} title="Remove everyone from the tracker">Clear</button>
       </div>
       <div class="addbar">
         <input class="qtyin" type="number" min="1" max="50" value=${qty} title="How many (monsters)" onInput=${(e) => setQty(Math.max(1, Number(e.target.value) || 1))} />
