@@ -3,6 +3,7 @@ import { html, useState, useRef, useEffect, S, byId, label, toast, num, call, no
 import { Picker, Empty, useHotkey } from './components.js';
 import { tracker, touch, order, isDown, step, removeCombatant, withUndo, rollAll, resetCombat, damage, addMonster, addNpc, addAdhoc, addEncounter, addParty, saveOutcome, pushPublic } from './combat.js';
 import { StatBlock } from './monsters.js';
+import { Picture } from './soundboard.js';
 import { EntryView } from './lookup.js';
 import { roll, LastRoll } from './dice.js';
 import { TimerChips, timersFor, fmt, expired } from './timers.js';
@@ -226,6 +227,7 @@ export function TrackerScreen() {
       <div class="keyhint">Space next · ← prev · ↑↓ select · D damage · H heal · C conditions · V hide · ? all shortcuts</div>
     </div>
     <div class="tside">
+      ${npc ? html`<${Picture} type="npc" id=${npc.id} compact />` : block ? html`<${Picture} type="monster" id=${block.id} compact />` : ''}
       ${block ? html`<${StatBlock} m=${block} who=${shown.name} />`
         : shown ? html`<div class="statblock"><div class="sbname">${shown.name}</div>
             <div class="sbsub">${npc ? [npc.description, npc.personality].filter(Boolean).join(' — ') || 'NPC — no stat block linked.' : shown.kind === 'pc' ? 'Player character' : 'No stat block.'}</div></div>`

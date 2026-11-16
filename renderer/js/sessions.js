@@ -2,6 +2,7 @@
 import { html, useState, useRef, useEffect, S, byId, label, create, edit, del, go, setKv, call, notify, today, clock,
   parseMentions, plainBody, mentionsIn, tokenize, nameScore, reloadCampaign } from './lib.js';
 import { Bound, Field, Ref, Links, TwoPane, Empty, Select } from './components.js';
+import { Recordings } from './recording.js';
 
 export const activeSession = () => byId('session', S.kv['activeSession:' + S.cid]);
 export async function startSession() {
@@ -144,6 +145,7 @@ function SessionDetail({ s }) {
       <${Field} label="Encounters" wide><${Links} type="encounter" ids=${s.encounter_ids} placeholder="Link an encounter…"
         onChange=${(ids) => edit('session', s, { encounter_ids: ids })} onCreate=${(name) => create('encounter', { name, monsters: [], npc_ids: [] })} /><//>
     </div>
+    <${Recordings} sessionId=${s.id} />
     <div class="section grow"><h3>Notes</h3>
       <div class="notes">
         ${notes.map((n) => html`<${NoteRow} key=${n.id} n=${n} />`)}

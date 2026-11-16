@@ -3,6 +3,7 @@ import { html, useState, useRef, S, listOf, byId, label, create, edit, del, go, 
 import { Bound, Field, Select, Ref, Picker, Links, Tags, TwoPane, Empty } from './components.js';
 import { addNpc, addEncounter, addParty } from './combat.js';
 import { go as nav } from './lib.js';
+import { Picture } from './soundboard.js';
 
 const NAMES = { npc: 'NPC', location: 'Location', faction: 'Faction', quest: 'Quest', encounter: 'Encounter' };
 const nameKey = (type) => (type === 'quest' ? 'title' : 'name');
@@ -83,6 +84,7 @@ function NpcDetail({ e }) {
         onChange=${(ids) => edit('npc', e, { faction_ids: ids })} onCreate=${(name) => create('faction', { name })} /><//>
       <${Field} label="Description" wide><${Bound} type="npc" obj=${e} k="description" area rows=${4} placeholder="Who they are, what they look like, what they want" /><//>
       <${Field} label="Personality / voice" wide><${Bound} type="npc" obj=${e} k="personality" area rows=${3} placeholder="Mannerisms, accent, a line they'd say" /><//>
+      <${Field} label="Picture" wide><${Picture} type="npc" id=${e.id} /><//>
     </div>
     <div class="section"><h3>Combat <small>optional — fill in to drop this NPC straight into initiative</small></h3>
       <div class="grid four">
@@ -111,6 +113,7 @@ function LocationDetail({ e }) {
       <${Field} label="Inside"><${Select} value=${e.parent_id} empty="— top level —" options=${locOptions(e.id)} onChange=${(v) => edit('location', e, { parent_id: v ? Number(v) : null })} /><//>
       <${Field} label="Tags" hint="comma-separated"><${Bound} type="location" obj=${e} k="tags" placeholder="city, dangerous" /><//>
       <${Field} label="Description" wide><${Bound} type="location" obj=${e} k="description" area rows=${6} placeholder="What's here, what it feels like" /><//>
+      <${Field} label="Picture" wide><${Picture} type="location" id=${e.id} /><//>
     </div>
     <div class="section"><h3>NPCs currently here</h3>
       <div class="links">

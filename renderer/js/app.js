@@ -11,6 +11,7 @@ import { Timers } from './timers.js';
 import { GeneratorsScreen } from './generators.js';
 import { EmergencyNpc, toggleEmergency } from './npcgen.js';
 import { SoundboardScreen, BoardSync, onBoardEvent, toggleBoard } from './soundboard.js';
+import { RecButton } from './recording.js';
 import { Timer, Palette, Shortcuts, SettingsScreen, togglePalette, toggleTimer, toggleShortcuts, newCampaign, hooks } from './tools.js';
 
 const NAV = [
@@ -92,6 +93,7 @@ function App() {
         <button class="jump" onClick=${togglePalette} title="Jump to anything or run an action (Ctrl+K)">🔍 <kbd>Ctrl K</kbd></button>
         ${act ? html`<div class="quick"><span class="live" title=${label(act)}>LIVE</span><${NoteInput} sessionId=${act.id} inputRef=${noteRef} placeholder="Quick note — @ links an NPC or quest (Ctrl+J)" /></div>`
           : html`<div class="quick"><button onClick=${startSession}>▶ Start session</button></div>`}
+        <${RecButton} />
         <${QuickRoll} inputRef=${rollRef} />
         <button onClick=${() => toggleDice()} title="Dice roller and roll history (Ctrl+D)">🎲</button>
         <${Timers} combatants=${order(tracker())} />

@@ -1,5 +1,6 @@
 // Always-available tools: stopwatch, command palette, shortcut reference, and the settings screen.
-import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS, themeChoice, setTheme } from './lib.js';
+import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS, themeChoice, setTheme, flushSaves } from './lib.js';
+import { isRecording, toggleRecording } from './recording.js';
 import { Bound, Field } from './components.js';
 import { roll, isDice, toggleDice } from './dice.js';
 import { toggleTimers } from './timers.js';
@@ -49,6 +50,8 @@ function actions() {
     { name: 'Pop out player view', hint: 'Ctrl+Shift+P', words: 'second monitor screen window display', run: () => popOutPlayer() },
     ...(S.player?.open ? [{ name: 'Close player view', hint: '', words: 'window', run: () => call('playerClose') }] : []),
     { name: S.player?.board ? 'Close the pop-out soundboard' : 'Pop out the soundboard', hint: 'Ctrl+Shift+B', words: 'sound board deck window', run: toggleBoard },
+    { name: isRecording() ? 'Stop recording' : 'Record session audio', hint: '', words: 'microphone record audio transcript', run: toggleRecording },
+    { name: 'Back up everything', hint: '', words: 'backup save export zip', run: backup },
     { name: 'Stop all sounds', hint: '', words: 'soundboard silence picture video', run: stopAll },
     { name: 'Start a new session', hint: '', words: 'begin', run: startSession },
     { name: 'Switch theme: ' + (window.rrTheme.resolved() === 'light' ? 'dark' : 'light'), hint: '', words: 'appearance mode night day', run: () => setTheme(window.rrTheme.resolved() === 'light' ? 'dark' : 'light') },
@@ -152,6 +155,20 @@ export function Shortcuts() {
 }
 
 // ---------------------------------------------------------------- settings
+// One .zip with every campaign, the soundboard files, attached pictures and recordings.
+export async function backup() {
+  await flushSaves();
+  const r = await call('backupSave').catch(() => null);
+  if (!r) return;
+  S.kv.lastBackup = { at: new Date().toISOString(), file: r.file };
+  toast(`Backup saved: ${r.file} (${(r.bytes / 1048576).toFixed(1)} MB).`, { ms: 6000 });
+}
+async function restore() {
+  await flushSaves();
+  if (isRecording()) return toast('Stop the recording first, then restore.');
+  await call('backupRestore').catch(() => null);      // on success the window reloads with the restored data
+}
+
 export async function newCampaign(name) {
   const c = await call('save', 'campaign', { name, system: '5E (2024 rules)' });
   S.campaigns.push(c);
@@ -222,8 +239,11 @@ export function SettingsScreen() {
     <${Thresholds} />
     <section><h2>Keyboard shortcuts <small>press ? on any screen to see this list</small></h2><${ShortcutTable} /></section>
     <section><h2>Your data</h2>
-      <p>Everything is stored in one file on this computer. Back it up by copying it.</p>
+      <p>Everything is stored on this computer: one data file, plus two folders beside it for soundboard files and pictures (<code>roll-ready-media</code>) and session recordings (<code>roll-ready-recordings</code>).</p>
       <p><code>${S.dbFile}</code> <button onClick=${() => call('showDataFile')}>Show in folder</button></p>
+      <div class="rowbtns"><button class="primary" onClick=${backup}>Back up everything…</button><button onClick=${restore}>Restore from a backup…</button></div>
+      <p class="muted">${S.kv.lastBackup ? `Last backup: ${new Date(S.kv.lastBackup.at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} — ${S.kv.lastBackup.file}` : 'No backup made yet.'}
+        A backup is a single .zip with all of it. Restoring replaces everything here with the backup, after saving a safety copy of what you have now.</p>
     </section>
     <section><h2>About & credits</h2>
       <p>Roll Ready 2.0 — a local-first helper for game masters. 5E compatible (2024 rules).</p>

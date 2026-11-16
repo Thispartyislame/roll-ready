@@ -39,6 +39,13 @@ the visual rules). Where they conflict with this file, this file wins.
   `board.html` + `js/board.js` + `preload-board.js` (always-on-top pop-out; a remote that reports
   presses, the GM window does the playing). Media is copied to `roll-ready-media/` beside the
   database and served through the `rrmedia:` scheme; unused files are swept at startup.
+- **Scenes, pictures, recording, backup** (schema v4): soundboard buttons have a `channel`
+  (effect / music / scene), `fade`, and for scenes a `members` list; two master volumes live in kv
+  `sbVolume`. Pictures attached to NPCs, locations and monsters are kv `img:<type>:<id>` (so SRD
+  monsters work) and are shown with `reveal()` in `soundboard.js`. `recording.js` records the
+  microphone to `roll-ready-recordings/` in chunks via `recStart/recAppend/recStop`. `src/zip.js`
+  is a dependency-free ZIP writer/reader; `backupSave` / `backupRestore` in `main.js` pack and
+  unpack the database snapshot plus both folders, and restore reopens the store and reloads the page.
 - `tools.js`: stopwatch, command palette with actions, shortcut overlay (`?`), Settings with the
   editable thresholds grid. `app.js`: nav, header, global hotkeys.
 - **Licensing finding:** the "XP Budget per Character" table IS in SRD 5.2 (Gameplay Toolbox →
@@ -55,7 +62,8 @@ the visual rules). Where they conflict with this file, this file wins.
   Nothing else may be sent to it.
 - No `confirm()` for undoable actions: `del()` hides the entry and shows a toast with Undo (the row
   is removed from the file when the toast goes, on window blur, or on a campaign switch);
-  `withUndo()` in `combat.js` does the same for tracker changes. Only deleting a campaign asks.
+  `withUndo()` in `combat.js` does the same for tracker changes. Only things with no way back ask:
+  deleting a campaign, deleting a recording file, and restoring a backup.
 - Colours are tokens only (`renderer/styles.css`, `renderer/player.css`), defined for dark and
   `:root[data-theme="light"]`. `js/theme.js` sets `data-theme` before the app loads.
 

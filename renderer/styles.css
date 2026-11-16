@@ -356,3 +356,12 @@ table.enc td.muted, td.qty input, .qtyin, table.thresholds input { font-family: 
 .sbfile { display: flex; align-items: center; gap: 6px; min-width: 0; } .sbname2 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .sbfile .muted { flex: 1; }
 .sbpreview { grid-column: 1 / -1; } .sbpreview img { max-width: 100%; max-height: 150px; border: 1px solid var(--line2); border-radius: var(--radius); display: block; }
 .sbedit .check.wide { grid-column: 1 / -1; } .sbedit input[type=range] { padding: 0; accent-color: var(--accent); }
+
+/* ---- soundboard volumes and scenes, revealable pictures, recording */
+.sbvol { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; } .sbvol input { width: 90px; padding: 0; accent-color: var(--accent); } .sbvol span { width: 34px; font-variant-numeric: tabular-nums; color: var(--text); }
+.sbmembers { display: flex; flex-direction: column; gap: 3px; max-height: 220px; overflow-y: auto; border: 1px solid var(--line2); border-radius: var(--radius); padding: 6px 8px; } .sbmembers .check { color: var(--text); white-space: normal; } .sbmembers small { margin-left: 4px; }
+.picture { display: flex; align-items: flex-start; gap: 12px; } .picture img { max-width: 220px; max-height: 150px; border: 1px solid var(--line2); border-radius: var(--radius); display: block; }
+.picbtns { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; } .picture > button { flex: none; } .picture .small { align-self: center; }
+.picture.compact { margin-bottom: 12px; } .picture.compact img { max-width: 120px; max-height: 84px; } .form > .picture { margin-bottom: 14px; }
+.recbtn { font-variant-numeric: tabular-nums; } .recbtn.on { border-color: var(--bad); color: var(--bad-fg); background: var(--bad-bg); font-weight: 700; }
+.recrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; border-bottom: 1px solid var(--hair); } .recname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

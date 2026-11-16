@@ -3,6 +3,7 @@ import { html, useState, S, byId, create, edit, del, go, sign, mod, crNum, nameS
 import { roll } from './dice.js';
 import { Field, TwoPane, Empty } from './components.js';
 import { addMonster } from './combat.js';
+import { Picture } from './soundboard.js';
 
 const XP = XP_BY_CR;
 const AB = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
@@ -156,6 +157,7 @@ export function MonsterScreen() {
           <button onClick=${() => duplicateMonster(cur)} title="Make your own editable copy to rename and tweak">Duplicate</button>
           ${cur.source !== 'SRD' ? html`<button class="danger ghost" onClick=${async () => { if (await del('monster', cur)) go('monster', null); }}>Delete</button>` : ''}
         </div>
+        <${Picture} key=${'p' + cur.id} type="monster" id=${cur.id} />
         ${editing ? html`<${MonsterEditor} key=${cur.id} m=${cur} />` : html`<${StatBlock} m=${cur} />`}
       </div>` : html`<${Empty}>Pick a monster to see its stat block, or create your own.<//>`} />`;
 }

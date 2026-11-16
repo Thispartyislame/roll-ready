@@ -3,13 +3,16 @@ const { pathToFileURL } = require('node:url');
 const path = require('node:path');
 const fs = require('node:fs');
 const { Store } = require('./src/db');
+const { writeZip, openZip } = require('./src/zip');
 
 let store;
 let win;            // the GM window
 let player = null;  // the player-facing window (optional, local only)
 let board = null;   // the soundboard pop-out (optional): a remote control for the GM window
 let boardState = { buttons: [], playing: [], theme: 'dark' };
-let mediaDir;
+let mediaDir;       // soundboard files and attached pictures, copied in
+let recDir;         // session recordings
+let dbFile;
 let publicState = { round: 1, combatants: [], theme: 'auto' };   // last sanitized tracker state from the GM window
 
 // ---------------------------------------------------------------- data file
@@ -37,11 +40,11 @@ const VIDEO = ['mp4', 'webm', 'mov', 'm4v', 'ogv'];
 const kindOf = (file) => { const ext = path.extname(file).slice(1).toLowerCase(); return AUDIO.includes(ext) ? 'audio' : IMAGE.includes(ext) ? 'image' : VIDEO.includes(ext) ? 'video' : null; };
 
 async function mediaPick(want) {
-  const filters = want === 'audio' ? [{ name: 'Sounds', extensions: AUDIO }] : [{ name: 'Pictures and video', extensions: [...IMAGE, ...VIDEO] }];
-  const r = await dialog.showOpenDialog(win, { title: want === 'audio' ? 'Choose a sound' : 'Choose a picture or video', properties: ['openFile'], filters });
+  const filters = want === 'audio' ? [{ name: 'Sounds', extensions: AUDIO }] : want === 'image' ? [{ name: 'Pictures', extensions: IMAGE }] : [{ name: 'Pictures and video', extensions: [...IMAGE, ...VIDEO] }];
+  const r = await dialog.showOpenDialog(win, { title: want === 'audio' ? 'Choose a sound' : want === 'image' ? 'Choose a picture' : 'Choose a picture or video', properties: ['openFile'], filters });
   if (r.canceled || !r.filePaths[0]) return null;
   const src = r.filePaths[0]; const kind = kindOf(src);
-  if (!kind || (want === 'audio') !== (kind === 'audio')) throw new Error(want === 'audio' ? 'That isn\'t a sound file this app can play.' : 'That isn\'t a picture or video this app can show.');
+  if (!kind || (want === 'audio') !== (kind === 'audio') || (want === 'image' && kind !== 'image')) throw new Error(want === 'audio' ? 'That isn\'t a sound file this app can play.' : want === 'image' ? 'That isn\'t a picture this app can show.' : 'That isn\'t a picture or video this app can show.');
   fs.mkdirSync(mediaDir, { recursive: true });
   const safe = path.basename(src).replace(/[^\w.\- ]+/g, '_').slice(-80);
   const file = `${Date.now().toString(36)}-${safe}`;
@@ -53,6 +56,89 @@ function mediaSweep() {
   if (!fs.existsSync(mediaDir)) return;
   const used = store.mediaInUse();
   for (const f of fs.readdirSync(mediaDir)) if (!used.has(f)) fs.rmSync(path.join(mediaDir, f), { force: true });
+}
+
+// ---------------------------------------------------------------- session recordings
+// The GM window records the microphone and sends the audio here in chunks every few seconds, so a
+// crash loses at most the last chunk and a long session never sits in memory.
+const rec = { fd: null, file: null };
+const recName = (f) => path.basename(String(f));         // never trust a path from the page
+function recStart(sessionId, label) {
+  recStop();
+  fs.mkdirSync(recDir, { recursive: true });
+  const t = new Date(); const p2 = (n) => String(n).padStart(2, '0');
+  const stamp = `${t.getFullYear()}-${p2(t.getMonth() + 1)}-${p2(t.getDate())} ${p2(t.getHours())}.${p2(t.getMinutes())}`;
+  const safe = String(label || 'Session').replace(/[^\w\- ]+/g, '').trim().slice(0, 40) || 'Session';
+  rec.file = `s${Number(sessionId) || 0}-${stamp} ${safe}.webm`;
+  rec.fd = fs.openSync(path.join(recDir, rec.file), 'w');
+  return rec.file;
+}
+function recAppend(bytes) { if (rec.fd == null) return false; fs.writeSync(rec.fd, Buffer.from(bytes)); return true; }
+function recStop() { if (rec.fd == null) return null; fs.closeSync(rec.fd); const f = rec.file; rec.fd = null; rec.file = null; return f; }
+function recList() {
+  if (!fs.existsSync(recDir)) return [];
+  return fs.readdirSync(recDir).filter((f) => /^s\d+-.*\.webm$/.test(f)).sort().map((f) => {
+    const st = fs.statSync(path.join(recDir, f));
+    return { file: f, sessionId: Number(f.match(/^s(\d+)-/)[1]), bytes: st.size, at: st.mtimeMs, live: f === rec.file };
+  });
+}
+
+// ---------------------------------------------------------------- backup and restore
+// A backup is one .zip holding a consistent copy of the database plus the media and recordings folders.
+const filesIn = (dir) => (fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => fs.statSync(path.join(dir, f)).isFile()) : []);
+function writeBackup(dest) {
+  const snap = dbFile + '.backup-tmp';
+  store.snapshot(snap);
+  try {
+    return writeZip(dest, [
+      { name: 'roll-ready.sqlite', file: snap, compress: true },
+      ...filesIn(mediaDir).map((f) => ({ name: 'media/' + f, file: path.join(mediaDir, f) })),
+      ...filesIn(recDir).filter((f) => f !== rec.file).map((f) => ({ name: 'recordings/' + f, file: path.join(recDir, f) })),
+    ]);
+  } finally { fs.rmSync(snap, { force: true }); }
+}
+async function backupSave() {
+  const t = new Date();
+  const name = `Roll Ready backup ${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}.zip`;
+  const r = await dialog.showSaveDialog(win, { title: 'Save a backup', defaultPath: path.join(app.getPath('documents'), name), filters: [{ name: 'Roll Ready backup', extensions: ['zip'] }] });
+  if (r.canceled || !r.filePath) return null;
+  const out = writeBackup(r.filePath);
+  store.kvSet('lastBackup', { at: t.toISOString(), file: r.filePath });
+  return { ...out, file: r.filePath };
+}
+async function backupRestore() {
+  const r = await dialog.showOpenDialog(win, { title: 'Restore from a backup', properties: ['openFile'], filters: [{ name: 'Roll Ready backup', extensions: ['zip'] }] });
+  if (r.canceled || !r.filePaths[0]) return null;
+  const zip = openZip(r.filePaths[0]);
+  try {
+    if (!zip.names.includes('roll-ready.sqlite')) throw new Error('That file isn\'t a Roll Ready backup.');
+    const ok = await dialog.showMessageBox(win, { type: 'warning', buttons: ['Restore', 'Cancel'], defaultId: 1, cancelId: 1, title: 'Restore from a backup',
+      message: 'Replace everything in Roll Ready with this backup?', detail: 'All campaigns, soundboard files and recordings will be replaced by the ones in the backup. A safety copy of what you have now is saved first.' });
+    if (ok.response !== 0) return null;
+    recStop();
+    // Safety copy of the current data, in case the restore was a mistake.
+    const safetyDir = path.join(path.dirname(dbFile), 'roll-ready-backups'); fs.mkdirSync(safetyDir, { recursive: true });
+    const safety = path.join(safetyDir, `before-restore-${Date.now().toString(36)}.zip`);
+    writeBackup(safety);
+    // Unpack beside the data first, so a damaged backup is caught before anything is replaced.
+    const stage = dbFile + '.restore-tmp'; fs.rmSync(stage, { recursive: true, force: true });
+    fs.mkdirSync(path.join(stage, 'media'), { recursive: true }); fs.mkdirSync(path.join(stage, 'recordings'), { recursive: true });
+    for (const n of zip.names) {
+      const m = n.match(/^(media|recordings)\/([^/\\]+)$/);
+      if (n === 'roll-ready.sqlite') zip.extract(n, path.join(stage, 'db.sqlite'));
+      else if (m && m[2] !== '.' && m[2] !== '..') zip.extract(n, path.join(stage, m[1], m[2]));
+    }
+    if (player) player.close(); if (board) board.close();
+    store.close();
+    for (const ext of ['', '-wal', '-shm']) fs.rmSync(dbFile + ext, { force: true });
+    fs.renameSync(path.join(stage, 'db.sqlite'), dbFile);
+    for (const [from, to] of [['media', mediaDir], ['recordings', recDir]]) { fs.rmSync(to, { recursive: true, force: true }); fs.renameSync(path.join(stage, from), to); }
+    fs.rmSync(stage, { recursive: true, force: true });
+    store = new Store(dbFile);
+    store.seed(path.join(__dirname, 'data', 'srd.json'));
+    setTimeout(() => win && win.webContents.reload(), 50);     // the page loads everything fresh from the restored file
+    return { safety };
+  } finally { zip.close(); }
 }
 
 // ---------------------------------------------------------------- soundboard pop-out
@@ -159,7 +245,9 @@ app.whenReady().then(() => {
   store = new Store(file);
   store.seed(path.join(__dirname, 'data', 'srd.json'));
   publicState.theme = store.kvGet('playerTheme') || 'auto';
+  dbFile = file;
   mediaDir = path.join(path.dirname(file), 'roll-ready-media');
+  recDir = path.join(path.dirname(file), 'roll-ready-recordings');
   mediaSweep();
   protocol.handle('rrmedia', (req) => {
     const p = path.join(mediaDir, path.basename(decodeURIComponent(new URL(req.url).pathname)));   // basename: no way out of the folder
@@ -187,6 +275,16 @@ app.whenReady().then(() => {
     playerMedia: (media) => { if (player) player.webContents.send('player:media', media); return !!player; },
     // soundboard
     mediaPick: (want) => mediaPick(want),
+    // session recordings
+    recStart: (sessionId, label) => recStart(sessionId, label),
+    recAppend: (bytes) => recAppend(bytes),
+    recStop: () => recStop(),
+    recList: () => recList(),
+    recShow: (f) => { shell.showItemInFolder(path.join(recDir, recName(f))); return true; },
+    recDelete: (f) => { if (recName(f) !== rec.file) fs.rmSync(path.join(recDir, recName(f)), { force: true }); return true; },
+    // backup and restore
+    backupSave: () => backupSave(),
+    backupRestore: () => backupRestore(),
     boardOpen: () => boardOpen(),
     boardClose: () => { if (board) board.close(); return true; },
     boardPush: (state) => { boardState = state; if (board) board.webContents.send('board:state', boardState); return true; },
@@ -217,4 +315,5 @@ app.whenReady().then(() => {
   app.on('activate', () => { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
 });
 
+app.on('before-quit', () => recStop());
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

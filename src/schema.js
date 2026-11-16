@@ -269,4 +269,11 @@ module.exports = [
   );
   CREATE INDEX idx_sound_campaign ON sound_button(campaign_id);
   `,
+
+  // ---- v4: soundboard channels (music / effect / scene), fades, and scenes that start several buttons at once
+  `
+  ALTER TABLE sound_button ADD COLUMN channel TEXT NOT NULL DEFAULT 'effect';   -- 'effect' | 'music' | 'scene'
+  ALTER TABLE sound_button ADD COLUMN fade INTEGER NOT NULL DEFAULT 0;           -- seconds to fade in and out
+  ALTER TABLE sound_button ADD COLUMN members TEXT NOT NULL DEFAULT '[]';        -- for a scene: JSON array of button ids
+  `,
 ];

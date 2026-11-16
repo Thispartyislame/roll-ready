@@ -15,11 +15,11 @@
     if (!state.buttons.length) { grid.append(el('div', 'empty', 'No buttons yet. Press Edit to add some in the main window.')); return; }
     state.buttons.forEach((b, n) => {
       const on = state.playing.includes(b.id);
-      const btn = el('button', `sbbtn ${b.color || ''} ${on ? 'playing' : ''} ${!b.audio && !b.visual ? 'blank' : ''}`);
+      const btn = el('button', `sbbtn ${b.color || ''} ${on ? 'playing' : ''} ${!b.audio && !b.visual && !b.scene ? 'blank' : ''}`);
       btn.title = on ? 'Playing — press to stop' : 'Press to play';
       const top = el('span', 'sbkey');
       if (n < 10) top.append(el('kbd', '', KEYS[n]));
-      top.append(el('i', '', [b.audio ? '🔊' : '', b.visual === 'image' ? '🖼' : b.visual === 'video' ? '🎬' : ''].join(' ').trim()));
+      top.append(el('i', '', b.scene ? `▦ scene · ${b.scene}` : [b.audio ? (b.music ? '♫' : '🔊') : '', b.visual === 'image' ? '🖼' : b.visual === 'video' ? '🎬' : ''].join(' ').trim()));
       if (b.duration) top.append(el('small', '', b.duration + 's'));
       btn.append(top, el('span', 'sblabel', b.label || 'New button'), el('span', 'sbstate', on ? '■ Playing' : ''));
       btn.addEventListener('click', () => window.deck.fire(b.id));

@@ -33,7 +33,10 @@
     },
     "mac": {
       "target": "dmg",
-      "category": "public.app-category.utilities"
+      "category": "public.app-category.utilities",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Roll Ready records session audio when you press Record."
+      }
     }
   }
 }

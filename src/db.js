@@ -37,7 +37,7 @@ const ENT = {
   condition: { cols: ['name', 'description', 'leveled', 'sort_order'] },
   party_member: { cols: ['campaign_id', 'name', 'player', 'ac', 'max_hp', 'init_bonus'], scoped: true },
   timer: { cols: ['campaign_id', 'label', 'unit', 'duration', 'remaining', 'running', 'started_at', 'combatant_id', 'combatant_name'], scoped: true },
-  sound_button: { cols: ['campaign_id', 'label', 'color', 'sort_order', 'audio', 'visual', 'visual_kind', 'volume', 'loop', 'duration'], scoped: true },
+  sound_button: { cols: ['campaign_id', 'label', 'color', 'sort_order', 'audio', 'visual', 'visual_kind', 'volume', 'loop', 'duration', 'channel', 'fade', 'members'], json: ['members'], scoped: true },
   gen_table: { cols: ['key', 'name', 'category', 'top', 'save_as', 'builtin', 'entries'], json: ['entries'] },
 };
 
@@ -143,7 +143,7 @@ class Store {
   loadCampaign(id) {
     const out = {};
     for (const type of ['location', 'faction', 'npc', 'quest', 'session', 'encounter', 'party_member', 'timer', 'sound_button']) {
-      out[type] = this.all(`SELECT * FROM ${type} WHERE campaign_id = ? ORDER BY id`, id);
+      out[type] = this.all(`SELECT * FROM ${type} WHERE campaign_id = ? ORDER BY id`, id).map((r) => this.rowOut(type, r));
       this.attachLinks(type, out[type], `SELECT id FROM ${type} WHERE campaign_id = ${Number(id)}`);
     }
     const noteScope = `SELECT n.id FROM note n JOIN session s ON s.id = n.session_id WHERE s.campaign_id = ${Number(id)}`;
@@ -216,7 +216,7 @@ class Store {
   // What an empty form field becomes: NULL for optional numbers/links, 0 or '' for NOT NULL columns.
   emptyFor(type, col) {
     if (/^(location_id|parent_id|monster_id|ac|hp|max_hp|combatant_id)$/.test(col)) return null;
-    if (/^(party_level|party_size|duration|remaining|running|started_at|top|builtin|volume|loop)$/.test(col)) return 0;
+    if (/^(party_level|party_size|duration|remaining|running|started_at|top|builtin|volume|loop|fade)$/.test(col)) return 0;
     if (col === 'init_bonus') return type === 'npc' ? null : 0;
     if (/^(level|leveled|sort_order)$/.test(col)) return 0;
     return '';
@@ -250,7 +250,15 @@ class Store {
   }
 
   // Every media file some soundboard button still uses (for sweeping orphans at startup).
-  mediaInUse() { return new Set(this.all('SELECT audio, visual FROM sound_button').flatMap((r) => [r.audio, r.visual]).filter(Boolean)); }
+  // That is soundboard files plus pictures attached to NPCs, locations and monsters (kv keys "img:<type>:<id>").
+  mediaInUse() {
+    const pics = this.all("SELECT value FROM kv WHERE key LIKE 'img:%'").map((r) => JSON.parse(r.value));
+    return new Set([...this.all('SELECT audio, visual FROM sound_button').flatMap((r) => [r.audio, r.visual]), ...pics].filter(Boolean));
+  }
+
+  // A consistent single-file copy of the database, for backups.
+  snapshot(dest) { fs.rmSync(dest, { force: true }); this.db.exec(`VACUUM INTO '${dest.replace(/'/g, "''")}'`); }
+  close() { this.db.close(); }
 
   diceClear() { this.run('DELETE FROM dice_log'); return true; }
 }

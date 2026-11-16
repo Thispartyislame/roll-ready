@@ -48,6 +48,23 @@ renderer/
 
 No new libraries were added in Phase 2.
 
+### Scenes, pictures, recording, backup (schema v4)
+
+- **Scenes and volume.** `sound_button.channel` is `effect`, `music` or `scene`; a scene's `members`
+  is a JSON list of button ids it starts and stops. `fade` ramps the audio element's volume. Two
+  master volumes (music, effects) are stored in `kv` and multiply each button's own volume.
+- **Pictures.** A picture attached to an NPC, location or monster is a `kv` entry
+  (`img:<type>:<id>` → file in `roll-ready-media/`), which works for read-only SRD monsters without
+  a schema change. Showing one uses the same single `playerMedia` slot as a soundboard picture.
+- **Recording.** The GM window records the microphone with `MediaRecorder` (WebM/Opus, 48 kbit/s)
+  and sends a chunk to the main process every four seconds, which appends it to a file in
+  `roll-ready-recordings/`. A crash loses at most the last chunk. Nothing is uploaded or transcribed.
+  macOS builds declare `NSMicrophoneUsageDescription`.
+- **Backup.** `src/zip.js` is a small ZIP writer and reader with no dependencies (classic ZIP, 4 GB
+  limit). A backup is a `VACUUM INTO` snapshot of the database plus both folders. Restore unpacks
+  to a staging folder first, saves a safety backup of the current data, swaps the files, reopens
+  the store and reloads the window.
+
 ### Soundboard (schema v3)
 
 `sound_button` rows (label, colour, order, audio file, picture/video file, volume, loop, time
