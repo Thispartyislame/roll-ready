@@ -275,6 +275,16 @@ app.whenReady().then(() => {
     playerMedia: (media) => { if (player) player.webContents.send('player:media', media); return !!player; },
     // soundboard
     mediaPick: (want) => mediaPick(want),
+    // demo campaign: its description, and its bundled sounds and pictures copied in like any other media
+    demoData: () => JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'demo', 'demo.json'), 'utf8')),
+    demoMedia: (name) => {
+      const src = path.join(__dirname, 'data', 'demo', path.basename(String(name)));
+      if (!kindOf(src) || !fs.existsSync(src)) throw new Error('Missing demo file: ' + name);
+      fs.mkdirSync(mediaDir, { recursive: true });
+      const file = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}-${path.basename(src)}`;
+      fs.copyFileSync(src, path.join(mediaDir, file));
+      return file;
+    },
     // session recordings
     recStart: (sessionId, label) => recStart(sessionId, label),
     recAppend: (bytes) => recAppend(bytes),

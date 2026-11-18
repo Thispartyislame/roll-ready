@@ -13,6 +13,7 @@ monsters come from the open SRD 5.2.
 ## Contents
 
 - [Getting started](#getting-started)
+  - [The demo campaign](#the-demo-campaign)
 - [Finding your way around](#finding-your-way-around)
 - [Prep: your campaign world](#prep-your-campaign-world)
   - [NPCs, locations, factions and quests](#npcs-locations-factions-and-quests)
@@ -40,11 +41,35 @@ monsters come from the open SRD 5.2.
 
 ## Getting started
 
-The first time you open Roll Ready, type a name for your campaign and press **Enter**.
+The first time you open Roll Ready, type a name for your campaign and press **Enter**, or click
+**Explore the demo campaign** to look around a ready-made one first.
 
-![The welcome screen asks for a campaign name](images/welcome.png)
+![The welcome screen asks for a campaign name, or offers the demo campaign](images/welcome.png)
 
-A good first ten minutes:
+### The demo campaign
+
+**Demo: The Saltwind Coast** is a small sample campaign that shows how everything fits together.
+The party has arrived in the fishing town of Gullhaven, where the Harbour Guild's ledger vanished
+the night the ship *Gannet* sank. It includes:
+
+- six locations (nested from the coast down to the town's inn and docks), two factions, six NPCs
+  and three quests, all linked to each other
+- a party of four characters at level 3
+- three encounters, one of them with an NPC who uses a monster stat block
+- two played sessions with notes, @-links to NPCs and quests, a combat outcome and a dice roll, and
+  one planned session with its encounters linked
+- a soundboard with rain, thunder, a tavern tune, a map to show the players, and two scenes
+- a map of the coast attached to the region, and two reference panels pinned beside the tracker
+
+It opens on the second session. Try **Run encounter** on "Ambush at the Tarred Docks", or the
+"Storm over the harbour" scene on the soundboard.
+
+The demo is added **alongside** your own campaigns and never changes them. Switch between
+campaigns with the drop-down at the top of the sidebar. Add or reopen it at any time from
+**Settings → Campaign** or the command palette, and delete it in **Settings → Campaign** when you're
+done. Its sounds, map and content were made for Roll Ready.
+
+### A good first ten minutes
 
 1. **Party:** add your players' characters.
 2. **Encounters:** build a fight and check its difficulty.
@@ -577,7 +602,8 @@ Use **↑** **↓** and **Enter**, or click. **Esc** closes it.
 **Settings & about** holds:
 
 - **Campaign:** the name, the rules system (free text, so 2014-rules campaigns can live alongside),
-  and campaign notes. Create a new campaign or delete this one here.
+  and campaign notes. Create a new campaign, add or open the
+  [demo campaign](#the-demo-campaign), or delete this one here.
 - **Appearance:** follow your system, dark or light. The player view has its own theme setting.
 - **Conditions:** the list used in the tracker. Rename, add or remove conditions, mark one as
   having levels (like Exhaustion), and edit its rules text, if your table plays differently.

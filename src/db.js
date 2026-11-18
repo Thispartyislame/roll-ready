@@ -252,7 +252,14 @@ class Store {
   // Every media file some soundboard button still uses (for sweeping orphans at startup).
   // That is soundboard files plus pictures attached to NPCs, locations and monsters (kv keys "img:<type>:<id>").
   mediaInUse() {
-    const pics = this.all("SELECT value FROM kv WHERE key LIKE 'img:%'").map((r) => JSON.parse(r.value));
+    // A picture counts only while its NPC, location or monster still exists (deleting a campaign removes its
+    // rows but not their kv entries); stale entries are tidied away here too.
+    const pics = [];
+    for (const r of this.all("SELECT key, value FROM kv WHERE key LIKE 'img:%'")) {
+      const [, type, id] = r.key.split(':');
+      if (['npc', 'location', 'monster'].includes(type) && this.get(`SELECT 1 AS x FROM ${type} WHERE id = ?`, Number(id))) pics.push(JSON.parse(r.value));
+      else this.run('DELETE FROM kv WHERE key = ?', r.key);
+    }
     return new Set([...this.all('SELECT audio, visual FROM sound_button').flatMap((r) => [r.audio, r.visual]), ...pics].filter(Boolean));
   }
 

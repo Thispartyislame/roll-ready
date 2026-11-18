@@ -1,0 +1,119 @@
+{
+  "note": "The demo campaign, added from the welcome screen, Settings or the command palette. Original content written for Roll Ready. In note text, @{Name} links an NPC and @{q:Title} links a quest. Monsters are SRD 5.2 names.",
+  "campaign": {
+    "name": "Demo: The Saltwind Coast",
+    "system": "5E (2024 rules)",
+    "party_level": 3,
+    "party_size": 4,
+    "notes": "A small sample campaign that shows how Roll Ready fits together: a town with its people and factions, a party, three encounters, two played sessions and one planned, and a soundboard. Look around, run an encounter, change anything. When you're done, delete it in Settings → Campaign; your own campaigns are not affected.\n\nPremise: the party arrives in the fishing town of Gullhaven, where the Harbour Guild's ledger vanished the night the ship Gannet sank. Lanterns have been seen on the wreck ever since."
+  },
+  "locations": [
+    { "ref": "coast", "name": "The Saltwind Coast", "tags": "region", "picture": "gullhaven-map.png",
+      "description": "Grey cliffs, cold water and a handful of fishing towns. The road north goes to the Old Abbey; the road east to Kestrel Ford." },
+    { "ref": "gullhaven", "name": "Gullhaven", "parent": "coast", "tags": "town",
+      "description": "A fishing town wedged between the cliffs and a sheltered harbour. Everyone here owes the Harbour Guild something, and everyone knows who owes what." },
+    { "ref": "docks", "name": "The Tarred Docks", "parent": "gullhaven", "tags": "docks",
+      "description": "Three long jetties, stacks of crates, coils of rope and the smell of hot pitch. Busy by day, empty and echoing at night." },
+    { "ref": "badger", "name": "The Drowsy Badger", "parent": "gullhaven", "tags": "inn",
+      "description": "The only inn worth the name. Low beams, a fire that never quite goes out, and a dog that sleeps across the doorway. Rooms are 5 sp a night." },
+    { "ref": "light", "name": "Gull Rock Light", "parent": "coast", "tags": "lighthouse",
+      "description": "A lighthouse on a rock just off the point, reached by a causeway at low tide. Its keeper hasn't been seen in town for a month." },
+    { "ref": "wreck", "name": "Wreck of the Gannet", "parent": "coast", "tags": "wreck, dungeon",
+      "description": "The Gannet broke her back on the reef in a spring storm. At low tide the hull stands half out of the water, and the hold can be reached by boat. Lanterns have been seen moving inside it at night." }
+  ],
+  "factions": [
+    { "ref": "guild", "name": "Harbour Guild", "tags": "merchants, law",
+      "description": "Owns every berth, crane and warehouse in Gullhaven. Its harbourmaster is the closest thing the town has to a mayor.",
+      "goals": "Keep the tolls flowing. Recover the missing ledger before the magistrate in Kestrel Ford hears it is gone.",
+      "relationships": "Tolerates the smugglers as long as they pay. Would very much like the Lamplighters gone." },
+    { "ref": "lamplighters", "name": "The Lamplighters", "tags": "smugglers",
+      "description": "A smuggling crew that signals its boats with shuttered lanterns. They have been using the wreck of the Gannet as a hiding place.",
+      "goals": "Sell the Guild's ledger to the highest bidder. Keep the wreck to themselves.",
+      "relationships": "Pays the Harbour Guild's quieter members to look the other way." }
+  ],
+  "npcs": [
+    { "ref": "mira", "name": "Mira Tolland", "location": "docks", "factions": ["guild"], "status": "alive", "tags": "ally, guild",
+      "description": "Harbourmaster of Gullhaven. Sharp eyes, a salt-stained coat, and never sits down.",
+      "personality": "Speaks in short orders. Calls everyone \"sailor\". Taps her pipe against her teeth when she's thinking." },
+    { "ref": "brannoch", "name": "Old Brannoch", "location": "gullhaven", "status": "alive", "tags": "informant",
+      "description": "A retired smuggler who mends nets in a loft above the fish market. Knows every cove on the coast.",
+      "personality": "Wheezing laugh. Tells the same story twice, but the details change. Will talk for a drink." },
+    { "ref": "pell", "name": "Pell Ashby", "location": "badger", "status": "alive", "tags": "innkeeper",
+      "description": "Owner of the Drowsy Badger. Broad, flour-dusted and endlessly patient.",
+      "personality": "Soft-spoken, apologises for everything, remembers what everyone drinks." },
+    { "ref": "sela", "name": "Captain Sela Rook", "location": "wreck", "factions": ["lamplighters"], "status": "alive", "tags": "villain, lamplighters",
+      "monster": "Bandit Captain",
+      "description": "Leader of the Lamplighters. Tall, scarred across one cheek, with a brass lantern always at her belt.",
+      "personality": "Polite, almost courtly, right up until she isn't. Never raises her voice." },
+    { "ref": "tamsin", "name": "Tamsin Gull", "location": "light", "status": "missing", "tags": "lighthouse",
+      "description": "Keeper of Gull Rock Light. Missing for a month. The lamp has kept burning anyway.",
+      "personality": "(Not yet met.) Brannoch says she hums sea shanties under her breath." },
+    { "ref": "wenna", "name": "Wenna Fairweather", "location": "badger", "status": "alive", "tags": "emergency",
+      "description": "Halfling — travelling knife-sharpener with a grindstone on her back.\nMud to the knees and spotless above.\nWants: news of the road ahead, and will pay for it.\nSecret: has already sold this information to someone else.\nHook: offers to make a problem disappear for a favour to be named later.",
+      "personality": "Repeats the last word she heard before replying. Attitude: shady." }
+  ],
+  "quests": [
+    { "ref": "ledger", "title": "The missing ledger", "status": "active", "tags": "main",
+      "npcs": ["mira", "sela"], "locations": ["docks", "wreck"],
+      "description": "The Harbour Guild's ledger vanished the night the Gannet sank. Mira wants it back quietly, before the magistrate finds out. Reward: 200 gp and free berth for life." },
+    { "ref": "lanterns", "title": "Lanterns on the wreck", "status": "active", "tags": "mystery",
+      "npcs": ["brannoch", "tamsin"], "locations": ["wreck", "light"],
+      "description": "Lights move inside the wreck of the Gannet at night, and the lighthouse keeper has vanished. Are the two connected?" },
+    { "ref": "rats", "title": "Rats in the net loft", "status": "completed", "tags": "side",
+      "npcs": ["brannoch"], "locations": ["gullhaven"],
+      "description": "Brannoch's net loft was overrun with rats. Cleared on the first night; Brannoch now owes the party a favour." }
+  ],
+  "party": [
+    { "name": "Asha Venn", "player": "Sam", "ac": 16, "max_hp": 31, "init_bonus": 3 },
+    { "name": "Borin Coppervein", "player": "Jo", "ac": 18, "max_hp": 38, "init_bonus": 0 },
+    { "name": "Cyl", "player": "Priya", "ac": 13, "max_hp": 22, "init_bonus": 4 },
+    { "name": "Dax Marlowe", "player": "Alex", "ac": 15, "max_hp": 27, "init_bonus": 2 }
+  ],
+  "encounters": [
+    { "ref": "ambush", "name": "Ambush at the Tarred Docks", "hp_mode": "average", "npcs": ["sela"],
+      "monsters": [{ "monster": "Bandit", "quantity": 4, "name": "Dockhand" }],
+      "notes": "Night, fog, one lantern on each jetty. Crates give half cover. Sela fights until she is Bloodied, then dives into the harbour and swims for a waiting boat." },
+    { "ref": "hold", "name": "Something in the hold", "hp_mode": "rolled",
+      "monsters": [{ "monster": "Giant Crab", "quantity": 3, "name": "" }, { "monster": "Specter", "quantity": 1, "name": "The Gannet's mate" }],
+      "notes": "Knee-deep water, slick timbers (Difficult Terrain). The crabs nest in the flooded stern. The specter appears when someone touches the ship's bell." },
+    { "ref": "lights", "name": "Ghost lights on Gull Rock", "hp_mode": "average",
+      "monsters": [{ "monster": "Will-o'-Wisp", "quantity": 2, "name": "" }],
+      "notes": "Only if the party crosses the causeway at night. The wisps try to lure them off the rocks as the tide comes in." }
+  ],
+  "sessions": [
+    { "ref": "s1", "date": "2026-10-03", "title": "Arrival in Gullhaven",
+      "summary": "The party reached Gullhaven, took rooms at the Drowsy Badger, cleared Brannoch's net loft of rats and were hired by Mira to find the Guild's missing ledger.",
+      "notes": [
+        ["19:05", "Party arrived on the coast road at dusk, in the rain."],
+        ["19:20", "Rooms at the Drowsy Badger. @{Pell Ashby} gave Cyl the room over the kitchen (warmest)."],
+        ["19:48", "@{Old Brannoch} asked for help with rats in his net loft. Party agreed: @{q:Rats in the net loft}"],
+        ["20:30", "Rats cleared. Borin fell through the loft floor; no harm done. Brannoch owes them a favour."],
+        ["21:10", "@{Mira Tolland} hired the party to find the Guild ledger, 50 gp up front: @{q:The missing ledger}"],
+        ["21:25", "Brannoch mentioned lanterns moving on the wreck of the Gannet at night. Dax wants to row out tomorrow."]
+      ] },
+    { "ref": "s2", "date": "2026-10-17", "title": "Blood on the Tarred Docks", "encounters": ["ambush"],
+      "summary": "Watching the docks at night, the party caught the Lamplighters unloading crates and were ambushed. Two dockhands fell; Captain Sela Rook escaped into the harbour. They found a torn page of the ledger on her crew.",
+      "notes": [
+        ["19:10", "Stakeout on the docks. Fog rolled in; only one lantern lit."],
+        ["19:35", "Spotted a rowing boat with a shuttered lantern unloading crates at the far jetty."],
+        ["19:40", "Ambush! @{Captain Sela Rook} and four dockhands."],
+        ["20:15", "⚔ Combat ended in round 4. Standing: @{Captain Sela Rook} (24/52 HP), Dockhand 2 (11/11 HP), Dockhand 4 (6/11 HP), Asha Venn (12/31 HP), Borin Coppervein (30/38 HP), Cyl (22/22 HP), Dax Marlowe (9/27 HP). Down: Dockhand 1, Dockhand 3. Sela dived off the jetty and swam for the boat; the last two dockhands surrendered."],
+        ["20:25", "🎲 Asha — Insight check: 1d20 + 3 → 17. The dockhands are scared of Sela, not loyal to her."],
+        ["20:40", "Found a torn page of the ledger on a dockhand: a list of payments marked with a lantern symbol."],
+        ["20:55", "@{Mira Tolland} was furious that Guild members appear on the list. Asked the party to keep it quiet."],
+        ["21:20", "Plan for next time: row out to the wreck at low tide. Brannoch will lend his boat."]
+      ] },
+    { "ref": "s3", "date": "2026-10-31", "title": "Into the Gannet", "encounters": ["hold", "lights"],
+      "summary": "Planned: the party rows out to the wreck at low tide. Crabs in the flooded stern, the mate's ghost by the bell. The rest of the ledger is in the captain's cabin, guarded by Lamplighters. If they go to Gull Rock afterwards, the ghost lights.",
+      "notes": [] }
+  ],
+  "soundboard": [
+    { "ref": "rain", "label": "Rain", "channel": "effect", "audio": "rain.ogg", "loop": 1, "fade": 3, "volume": 70, "color": "blue" },
+    { "ref": "thunder", "label": "Thunder", "channel": "effect", "audio": "thunder.ogg", "volume": 100, "color": "violet" },
+    { "ref": "tune", "label": "Tavern tune", "channel": "music", "audio": "tavern-tune.ogg", "loop": 1, "fade": 2, "volume": 60, "color": "orange" },
+    { "ref": "map", "label": "Map of the coast", "channel": "effect", "visual": "gullhaven-map.png", "duration": 20, "color": "good" },
+    { "label": "Storm over the harbour", "channel": "scene", "members": ["rain", "thunder"], "color": "violet" },
+    { "label": "Night at the Drowsy Badger", "channel": "scene", "members": ["tune", "rain"], "color": "orange" }
+  ],
+  "pins": [["monster", "Bandit Captain"], ["rule", "Frightened"]]
+}

@@ -6,7 +6,9 @@ spell lookup, dice, timers and generators. 5E compatible, built for the 2024 rul
 the bundled rules data. Works fully offline; no account, no server.
 
 **New to Roll Ready? Read the [user guide](docs/USER-GUIDE.md)** for a walk-through of every
-feature, with screenshots.
+feature, with screenshots. To see it all set up, click **Explore the demo campaign** on the welcome
+screen (or Settings → Campaign → Add the demo campaign): a sample campaign with places, people,
+encounters, played sessions and a soundboard, added alongside your own.
 
 ## Run it
 

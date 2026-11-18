@@ -52,6 +52,15 @@ the visual rules). Where they conflict with this file, this file wins.
   Combat Encounters), per the markdown conversion of the SRD used for the bundled data and
   corroborated by SRD mirrors; not checked against the official PDF. Shipped as editable defaults.
 
+## Demo campaign
+
+`data/demo/demo.json` (plus its sounds and map in the same folder) describes "Demo: The Saltwind
+Coast"; `renderer/js/demo.js` builds it through the normal `create()` calls, as a new campaign next
+to the GM's own (never over them). `demoData` / `demoMedia` in `main.js` read the JSON and copy a
+bundled file into `roll-ready-media/`. When the schema or a feature changes, update the demo too.
+All its content, sounds and the map are original. Deleting the demo campaign leaves no files behind:
+the startup sweep drops pictures whose NPC, location or monster no longer exists.
+
 ## User guide
 
 `docs/USER-GUIDE.md` (screenshots in `docs/images/`, 1440×900, dark theme, demo campaign

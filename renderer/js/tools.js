@@ -1,6 +1,7 @@
 // Always-available tools: stopwatch, command palette, shortcut reference, and the settings screen.
 import { html, useState, useEffect, useLayoutEffect, useRef, S, notify, call, create, edit, del, open, go, openCampaign, label, tagsOf, nameScore, toast, TIERS, themeChoice, setTheme, flushSaves } from './lib.js';
 import { isRecording, toggleRecording } from './recording.js';
+import { openDemo, demoCampaign } from './demo.js';
 import { Bound, Field } from './components.js';
 import { roll, isDice, toggleDice } from './dice.js';
 import { toggleTimers } from './timers.js';
@@ -53,6 +54,7 @@ function actions() {
     { name: isRecording() ? 'Stop recording' : 'Record session audio', hint: '', words: 'microphone record audio transcript', run: toggleRecording },
     { name: 'Back up everything', hint: '', words: 'backup save export zip', run: backup },
     { name: 'Stop all sounds', hint: '', words: 'soundboard silence picture video', run: stopAll },
+    { name: demoCampaign() ? 'Open the demo campaign' : 'Add the demo campaign', hint: 'a sample campaign to explore', words: 'example sample tutorial saltwind', run: openDemo },
     { name: 'Start a new session', hint: '', words: 'begin', run: startSession },
     { name: 'Switch theme: ' + (window.rrTheme.resolved() === 'light' ? 'dark' : 'light'), hint: '', words: 'appearance mode night day', run: () => setTheme(window.rrTheme.resolved() === 'light' ? 'dark' : 'light') },
     { name: 'Keyboard shortcuts', hint: '?', words: 'help keys reference', run: () => toggleShortcuts(true) },
@@ -217,6 +219,7 @@ export function SettingsScreen() {
       </div>
       <div class="rowbtns">
         <input placeholder="+ New campaign — type a name, press Enter" onKeyDown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) { newCampaign(e.target.value.trim()); e.target.value = ''; } }} />
+        <button onClick=${openDemo} title="A small sample campaign to explore, added alongside yours">${demoCampaign() ? 'Open the demo campaign' : 'Add the demo campaign'}</button>
         <button class="danger ghost" onClick=${() => del('campaign', c)}>Delete this campaign…</button>
       </div>` : ''}
     </section>

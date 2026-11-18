@@ -12,6 +12,7 @@ import { GeneratorsScreen } from './generators.js';
 import { EmergencyNpc, toggleEmergency } from './npcgen.js';
 import { SoundboardScreen, BoardSync, onBoardEvent, toggleBoard } from './soundboard.js';
 import { RecButton } from './recording.js';
+import { openDemo } from './demo.js';
 import { Timer, Palette, Shortcuts, SettingsScreen, togglePalette, toggleTimer, toggleShortcuts, newCampaign, hooks } from './tools.js';
 
 const NAV = [
@@ -25,7 +26,9 @@ const NAV = [
 
 function Welcome() {
   return html`<div class="welcome"><h1>Roll Ready</h1><p>A prep and at-the-table helper for game masters. Name your campaign to get started.</p>
-    <input placeholder="Campaign name, then Enter" onKeyDown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) newCampaign(e.target.value.trim()); }} ref=${(el) => el && el.focus()} /></div>`;
+    <input placeholder="Campaign name, then Enter" onKeyDown=${(e) => { if (e.key === 'Enter' && e.target.value.trim()) newCampaign(e.target.value.trim()); }} ref=${(el) => el && el.focus()} />
+    <p class="muted">or</p>
+    <button onClick=${openDemo} title="A small sample campaign with people, places, sessions and a soundboard, to see how it all fits together">Explore the demo campaign</button></div>`;
 }
 
 // Bottom-of-window message. With `undo`, it carries the way back instead of a confirmation up front.
