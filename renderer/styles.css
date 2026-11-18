@@ -136,7 +136,8 @@ table.plain { border-collapse: collapse; margin-bottom: 8px; } table.plain td { 
 header .noteinput input { padding: 5px 9px; }
 
 /* ---- initiative tracker */
-.tracker { display: grid; grid-template-columns: minmax(640px, 1fr) minmax(320px, 430px); flex: 1; min-height: 0; }
+/* The side panel (stat block, pins) takes what's left after the combatant rows have room to fit. */
+.tracker { display: grid; grid-template-columns: minmax(0, 1fr) clamp(300px, 28vw, 430px); flex: 1; min-height: 0; }
 .tmain { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--line); }
 .tbar, .addbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
 .round { font: 600 18px var(--serif); margin-right: 6px; } .round b { font: 700 24px var(--mono); font-variant-numeric: tabular-nums; }
@@ -318,7 +319,7 @@ table.thresholds td { padding: 2px 14px 2px 0; } table.thresholds input { width:
 .section > .picker input { width: 340px; } .section + .grid { margin-top: 18px; }
 @media (max-width: 1250px) { .quickroll input { width: 84px; } header .timer .tdisp { min-width: 50px; font-size: 15px; } }
 /* Small windows: the stat block panel moves under the combatant list instead of squeezing it. */
-@media (max-width: 1180px) { .tracker { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 38%); } .tmain { border-right: none; } .tside { border-top: 1px solid var(--line); } }
+@media (max-width: 1300px) { .tracker { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 38%); } .tmain { border-right: none; } .tside { border-top: 1px solid var(--line); } }
 .crow { grid-template-columns: 18px 50px minmax(110px, 1fr) 62px 120px 128px auto; }
 
 /* ---- design-context pass: number columns, toast actions, autosave status, theme, motion */

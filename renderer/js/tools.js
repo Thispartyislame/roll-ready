@@ -131,7 +131,7 @@ const SHORTCUTS = [
   ]],
   ['Elsewhere', [
     ['R', 'Reroll (Generators screen and the Emergency NPC panel)'],
-    ['1 – 9 / 0', 'Soundboard: press a button; Esc stops everything'],
+    ['1–9 / 0', 'Soundboard: press a button; Esc stops everything'],
     ['F11 / Esc', 'Player view: enter or leave full screen'],
     ['F12', 'Developer tools, for diagnosing problems'],
   ]],
@@ -243,7 +243,7 @@ export function SettingsScreen() {
       <p><code>${S.dbFile}</code> <button onClick=${() => call('showDataFile')}>Show in folder</button></p>
       <div class="rowbtns"><button class="primary" onClick=${backup}>Back up everything…</button><button onClick=${restore}>Restore from a backup…</button></div>
       <p class="muted">${S.kv.lastBackup ? `Last backup: ${new Date(S.kv.lastBackup.at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} — ${S.kv.lastBackup.file}` : 'No backup made yet.'}
-        A backup is a single .zip with all of it. Restoring replaces everything here with the backup, after saving a safety copy of what you have now.</p>
+        ${' '}A backup is a single .zip with all of it. Restoring replaces everything here with the backup, after saving a safety copy of what you have now.</p>
     </section>
     <section><h2>About & credits</h2>
       <p>Roll Ready 2.0 — a local-first helper for game masters. 5E compatible (2024 rules).</p>

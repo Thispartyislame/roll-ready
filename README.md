@@ -5,6 +5,9 @@ a session log, an encounter builder, an initiative tracker with a player-facing 
 spell lookup, dice, timers and generators. 5E compatible, built for the 2024 rules with SRD 5.2 as
 the bundled rules data. Works fully offline; no account, no server.
 
+**New to Roll Ready? Read the [user guide](docs/USER-GUIDE.md)** for a walk-through of every
+feature, with screenshots.
+
 ## Run it
 
 You need [Node.js](https://nodejs.org) 20 or newer (it's only used to install and launch; the app

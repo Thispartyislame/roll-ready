@@ -52,6 +52,12 @@ the visual rules). Where they conflict with this file, this file wins.
   Combat Encounters), per the markdown conversion of the SRD used for the bundled data and
   corroborated by SRD mirrors; not checked against the official PDF. Shipped as editable defaults.
 
+## User guide
+
+`docs/USER-GUIDE.md` (screenshots in `docs/images/`, 1440×900, dark theme, demo campaign
+"The Saltwind Coast") describes every feature for end users. Update it whenever UI wording,
+shortcuts or behaviour change.
+
 ## Conventions worth keeping
 
 - Overlays use the `.overlay` class; the tracker's single-key shortcuts are disabled while one is
